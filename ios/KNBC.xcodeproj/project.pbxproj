@@ -15,6 +15,7 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		84360641266B735000B1CCCB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 84360640266B735000B1CCCB /* GoogleService-Info.plist */; };
 		8CC3FE37598A464726828A0B /* libPods-KNBC-KNBCTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B886EEFD082714D51B72B0A /* libPods-KNBC-KNBCTests.a */; };
+		CE9F3136266BB16300F90176 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = CE9F3135266BB16300F90176 /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +45,7 @@
 		94970B5ECDDDBE5B7DE59399 /* Pods-KNBC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KNBC.release.xcconfig"; path = "Target Support Files/Pods-KNBC/Pods-KNBC.release.xcconfig"; sourceTree = "<group>"; };
 		BD64D5B11F4EB66840E0C98C /* Pods-KNBC-KNBCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KNBC-KNBCTests.release.xcconfig"; path = "Target Support Files/Pods-KNBC-KNBCTests/Pods-KNBC-KNBCTests.release.xcconfig"; sourceTree = "<group>"; };
 		C4C42498E602D1515D4827BD /* libPods-KNBC.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KNBC.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE9F3135266BB16300F90176 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../android/app/src/main/assets; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F24F5AEE6651BDB7AF72745C /* Pods-KNBC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KNBC.debug.xcconfig"; path = "Target Support Files/Pods-KNBC/Pods-KNBC.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -118,6 +120,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				CE9F3135266BB16300F90176 /* assets */,
 				84360640266B735000B1CCCB /* GoogleService-Info.plist */,
 				13B07FAE1A68108700A75B9A /* KNBC */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -247,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				CE9F3136266BB16300F90176 /* assets in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				84360641266B735000B1CCCB /* GoogleService-Info.plist in Resources */,
 			);

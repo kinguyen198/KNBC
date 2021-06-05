@@ -569,7 +569,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: e686045572151edef46010a6f819ade377dfeb4b
-  FBReactNativeSpec: 959642706608dc557123c88a31bf8a0a892224cf
+  FBReactNativeSpec: 2a67aa5d22f81cb33a7f44a83b56db8887e132ba
   Firebase: 73c3e3b216ec1ecbc54d2ffdd4670c65c749edb1
   FirebaseAuth: b8cd992fca5b53dc6eec09e873a3f375f000c5a1
   FirebaseCore: 3f09591d51292843e2a46f18358d60bf4e996255
@@ -590,7 +590,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
-  Permission-Camera: 5d2aaf95592660b6dcb5e8d1d90ed5d0156cad02
+  Permission-Camera: 375576c57ea625c88137d2cc52ba6dfeb21db036
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: 6d3e854f0e7260a648badd0d44fc364bc9da9728
@@ -603,9 +603,9 @@ SPEC CHECKSUMS:
   React-jsi: 67747b9722f6dab2ffe15b011bcf6b3f2c3f1427
   React-jsiexecutor: 80c46bd381fd06e418e0d4f53672dc1d1945c4c3
   React-jsinspector: cc614ec18a9ca96fd275100c16d74d62ee11f0ae
-  react-native-camera: e46c64f0d1212124c915bf83ee9b855ac6d35164
-  react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
-  react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
+  react-native-camera: 14f79f085a97ee82f99344e10888cbc774403926
+  react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
+  react-native-webview: 1f56115845c98f0a59dfbbac685797c014a821be
   React-perflogger: 25373e382fed75ce768a443822f07098a15ab737
   React-RCTActionSheet: af7796ba49ffe4ca92e7277a5d992d37203f7da5
   React-RCTAnimation: 6a2e76ab50c6f25b428d81b76a5a45351c4d77aa
@@ -621,7 +621,7 @@ SPEC CHECKSUMS:
   RNFBApp: cc2ff3f925840c53f0117d92e0f5e269b356d0f7
   RNFBAuth: 6853dd2d92ed8635831679b695a6690151ae6b77
   RNGoogleSignin: 111fd4792913208f338fe3178005f7a22e490ff9
-  RNPermissions: 5df468064df661a4c8c017e2791ce90d7695eea5
+  RNPermissions: 067727df624665d4a6c8e2cffcc172ba608b96ed
   Yoga: 575c581c63e0d35c9a83f4b46d01d63abc1100ac
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

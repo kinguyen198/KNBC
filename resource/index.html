@@ -20,99 +20,137 @@
 </head>
 <body>
 <div id="container">
-    <button id="button" onclick="clickHandler();" >Send to RN</button>
+    <button id="button" onclick="clickHandler();" >Send to RN</button> <br/>
+    <button id="scan" onclick="ScanHandler();" >Send to RN</button> <br/>
+    <button id="scan" onclick="GPSHandler();" >GPS</button> <br/>
 </div>
 <script>
 	var promiseChain = Promise.resolve();
 
-	var callbacks = {};
+    var callbacks = {};
 
-	var init = function() {
+    var init = function() {
 
-		const guid = function() {
-			function s4() {
-				return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-			}
-			return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
-		}
-
-
-		window.webViewBridge = {
-			/**
-			 * send message to the React-Native WebView onMessage handler
-			 * @param targetFunc - name of the function to invoke on the React-Native side
-			 * @param data - data to pass
-			 * @param success - success callback
-			 * @param error - error callback
-			 */
-			send: function(targetFunc, data, success, error) {
-
-				var msgObj = {
-					targetFunc: targetFunc,
-					data: data || {}
-				};
-
-				if (success || error) {
-					msgObj.msgId = guid();
-				}
-
-				var msg = JSON.stringify(msgObj);
-
-				promiseChain = promiseChain.then(function () {
-					return new Promise(function (resolve, reject) {
-						console.log("sending message " + msgObj.targetFunc);
-
-						if (msgObj.msgId) {
-							callbacks[msgObj.msgId] = {
-								onsuccess: success,
-								onerror: error
-							};
-						}
-
-						window.ReactNativeWebView.postMessage(msg);
-
-						resolve();
-					})
-				}).catch(function (e) {
-					console.error('rnBridge send failed ' + e.message);
-				});
-			},
+        var guid = function() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+            }
+            return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
+        }
 
 
-		};
+        window.webViewBridge = {
+            /**
+             * send message to the React-Native WebView onMessage handler
+             * @param targetFunc - name of the function to invoke on the React-Native side
+             * @param data - data to pass
+             * @param success - success callback
+             * @param error - error callback
+             */
+            send: function(targetFunc, data, success, error) {
 
-		window.addEventListener('message', function(e) {
-			console.log("message received from react native");
+                var msgObj = {
+                    targetFunc: targetFunc,
+                    data: data || {}
+                };
 
-			var message;
-			try {
-				message = JSON.parse(e.data)
-			}
-			catch(err) {
-				console.error("failed to parse message from react-native " + err);
-				return;
-			}
+                if (success || error) {
+                    msgObj.msgId = guid();
+                }
 
-			//trigger callback
-			if (message.args && callbacks[message.msgId]) {
-				if (message.isSuccessfull) {
-					callbacks[message.msgId].onsuccess.apply(null, message.args);
-				}
-				else {
-					callbacks[message.msgId].onerror.apply(null, message.args);
-				}
-				delete callbacks[message.msgId];
-			}
+                var msg = JSON.stringify(msgObj);
 
-		});
-	};
+                promiseChain = promiseChain.then(function () {
+                    return new Promise(function (resolve, reject) {
+                        console.log("sending message " + msgObj.targetFunc);
 
-	init();
+                        if (msgObj.msgId) {
+                            callbacks[msgObj.msgId] = {
+                                onsuccess: success,
+                                onerror: error
+                            };
+                        }
+
+                        window.ReactNativeWebView.postMessage(msg);
+
+                        resolve();
+                    })
+                }).catch(function (e) {
+                    console.error('rnBridge send failed ' + e.message);
+                });
+            },
+
+
+        };
+
+        window.addEventListener('message', function(e) {
+
+            // if (event.origin !== "__"){
+                console.log("message received from react native");
+
+                var message;
+                try {
+                    message = JSON.parse(e.data)
+                }
+                catch(err) {
+                    console.error("failed to parse message from react-native " + err);
+                    return;
+                }
+
+                //trigger callback
+                if (message.args && callbacks[message.msgId]) {
+                    alert(typeof message.args==='object'?JSON.stringify(message.args):message.args);
+                    if (message.isSuccessfull) {
+                        callbacks[message.msgId].onsuccess.apply(null, message.args);
+                    }
+                    else {
+                        callbacks[message.msgId].onerror.apply(null, message.args);
+                    }
+                    delete callbacks[message.msgId];
+                }
+            // }
+        });
+    };
+    init();   
     window.counter = 0;
     function clickHandler() {
     	window.counter++;
         window.webViewBridge.send('handleDataReceived', window.counter, function(res) {
             window.document.getElementById("button").setAttribute("style", "background-color: " + res);
+        }, function(err) {
+			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
+        });
+    }
+
+
+    function ScanHandler() { 
+        window.webViewBridge.send('logingoogle', window.counter, function(res) {
+            alert(typeof res==="object"?JSON.stringify(res):res);
+        }, function(err) {
+			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
+        });
+    }
+    function GPSHandler() { 
+        window.webViewBridge.send('gps', window.counter, function(res) {
+            
+            if(res.lat==0){
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition( function(position) {
+                                // Get current cordinates.
+                                res = {"lat": position.coords.latitude, "lng": position.coords.longitude};
+                                alert(typeof res==="object"?JSON.stringify(res):res);
+                            },
+                            function(error) {
+                                 
+                            },
+                            {timeout: 30000, enableHighAccuracy: true, maximumAge: 75000}
+                    );
+                }else{
+
+                } 
+            }else{
+                alert(typeof res==="object"?JSON.stringify(res):res);
+            }
         }, function(err) {
 			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
         });
