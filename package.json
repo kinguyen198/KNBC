@@ -1,0 +1,38 @@
+{
+  "name": "KNBC",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-native-community/geolocation": "^2.0.2",
+    "@react-native-firebase/app": "^12.0.0",
+    "@react-native-firebase/auth": "^12.0.0",
+    "@react-native-google-signin/google-signin": "^6.0.0",
+    "react": "17.0.1",
+    "react-native": "0.64.2",
+    "react-native-camera": "^3.44.0",
+    "react-native-permissions": "^2.2.2",
+    "react-native-qrcode-scanner": "^1.5.4",
+    "react-native-webview": "^11.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/runtime": "^7.14.0",
+    "@react-native-community/eslint-config": "^2.0.0",
+    "babel-jest": "^27.0.2",
+    "eslint": "^7.28.0",
+    "jest": "^27.0.4",
+    "metro-config": "^0.64.0",
+    "metro-react-native-babel-preset": "^0.66.0",
+    "react-test-renderer": "17.0.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
