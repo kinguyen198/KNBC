@@ -21,8 +21,10 @@
 <body>
 <div id="container">
     <button id="button" onclick="clickHandler();" >Send to RN</button> <br/>
-    <button id="scan" onclick="ScanHandler();" >Send to RN</button> <br/>
+    <button id="scan" onclick="ScanHandler();" >Login</button> <br/>
     <button id="scan" onclick="GPSHandler();" >GPS</button> <br/>
+    <button id="scanQR" onclick="ScanQR();" >Scan</button> <br/>
+    <button id="chat" onclick="Chat();" >Chat</button> <br/>
 </div>
 <script>
 	var promiseChain = Promise.resolve();
@@ -151,6 +153,20 @@
             }else{
                 alert(typeof res==="object"?JSON.stringify(res):res);
             }
+        }, function(err) {
+			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
+        });
+    }
+    function ScanQR() { 
+        window.webViewBridge.send('scan', window.counter, function(res) {
+            alert(typeof res==="object"?JSON.stringify(res):res);
+        }, function(err) {
+			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
+        });
+    }
+    function Chat() { 
+        window.webViewBridge.send('chat', window.counter, function(res) {
+            alert(typeof res==="object"?JSON.stringify(res):res);
         }, function(err) {
 			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
         });
