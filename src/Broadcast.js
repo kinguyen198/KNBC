@@ -10,7 +10,7 @@ import {
   ToastAndroid,
   Text,
   BackHandler,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
 import {
   GiftedChat,
@@ -24,14 +24,14 @@ import ImagePicker from 'react-native-image-picker';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-export default function Broadcast({navigation,route}) {
+export default function Broadcast({navigation, route}) {
   const [userId, setUserId] = useState('');
-  const [userPhoto, setUserPhoto] = useState('');
+  const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState('');
   const [messages, setMessages] = useState([]);
   const {params} = route;
-  var socket = io('http://127.0.0.1:5000/chatsocket');
-
+  const url = 'http://127.0.0.1:5000';
+  var socket = io(url + '/chatsocket');
 
   //styling chat bubbles
   const renderBubble = props => {
@@ -192,7 +192,6 @@ export default function Broadcast({navigation,route}) {
     });
   };
 
- 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -213,9 +212,7 @@ export default function Broadcast({navigation,route}) {
   }, []);
   const getMessages = async () => {
     try {
-      let response = await axios.get(
-        'http://127.0.0.1:5000' + '/broadcast',
-      );
+      let response = await axios.get(url + '/broadcast');
       if (response.status === 200) {
         let broadcasts = response.data.reverse();
         setMessages(GiftedChat.append(broadcasts, []));
@@ -226,98 +223,90 @@ export default function Broadcast({navigation,route}) {
     }
   };
 
-
   const handleBackPress = () => {
     navigation.goBack(); // works best when the goBack is async
     return true;
   };
 
-
-  const  onSend = async (message = []) => {
+  const onSend = async (message = []) => {
     //setMessages(GiftedChat.append(messages, message));
-    setMessages(previousMessages => GiftedChat.append(previousMessages, message))
+    setMessages(previousMessages =>
+      GiftedChat.append(previousMessages, message),
+    );
     //notify new message
     socket.emit('newMessage', 'sent');
     //console.log(message[0]);
     try {
       let formData = message[0];
-      let response = await axios.post(
-        'http://127.0.0.1:5000' + '/broadcast/',
-        formData,
-      );
+      let response = await axios.post(url + '/broadcast/', formData);
       if (response.status === 200) {
         socket.emit('newMessage', 'sent');
       }
     } catch (error) {
       console.error(error);
     }
-  }
-    return (
-      <>
-        <StatusBar backgroundColor="#111" barStyle="light-content" />
-        <View style={{backgroundColor: 'white', flex: 1}}>
-          <View
-            style={{
-              flexDirection: 'row',
-              height: '10%',
-              width: '100%',
-              backgroundColor: 'grey',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: '4%',
-              paddingTop:'6%',
+  };
+  return (
+    <>
+      <StatusBar backgroundColor="#111" barStyle="light-content" />
+      <View style={{backgroundColor: 'white', flex: 1}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            height: '10%',
+            width: '100%',
+            backgroundColor: 'grey',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: '4%',
+            paddingTop: '6%',
+          }}>
+          <TouchableOpacity
+            style={{flex: 1}}
+            onPress={() => {
+              navigation.goBack();
             }}>
-            <TouchableOpacity
-              style={{flex: 1}}
-              onPress={() => {
-                navigation.goBack();
-              }}>
-              <Icon
-                name="ios-arrow-back"
-                size={32}
-                style={{color: '#46CF76'}}
-              />
-            </TouchableOpacity>
-            <Text
-              name="ios-home"
-              style={{
-                flex: 1,
-                fontSize: 18,
-                color: '#f2f2f2',
-                textAlign: 'center',
-              }}>
-              Broadcast
-            </Text>
-            <Icon name="ios-home" size={32} style={{opacity: 0, flex: 1}} />
-          </View>
-          <GiftedChat
-            listViewProps={{
-              style: {
-                backgroundColor: 'white',
-                marginBottom:'1%',
-              },
-            }}
-            renderUsernameOnMessage={true}
-            alwaysShowSend={true}
-            messages={messages}
-            renderBubble={renderBubble}
-            renderInputToolbar={renderInputToolbar}
-            renderSend={renderSend}
-            onSend={messages => onSend(messages)}
-            user={{
-              _id: userId,
-              name: userName,
-              avatar: userPhoto,
-            }}
-          />
-          <View
+            <Icon name="ios-arrow-back" size={32} style={{color: '#46CF76'}} />
+          </TouchableOpacity>
+          <Text
+            name="ios-home"
             style={{
-              height: '1%',
-              width: '100%',
-            }}
-          />
+              flex: 1,
+              fontSize: 18,
+              color: '#f2f2f2',
+              textAlign: 'center',
+            }}>
+            Broadcast
+          </Text>
+          <Icon name="ios-home" size={32} style={{opacity: 0, flex: 1}} />
         </View>
-      </>
-    );
+        <GiftedChat
+          listViewProps={{
+            style: {
+              backgroundColor: 'white',
+              marginBottom: '1%',
+            },
+          }}
+          renderUsernameOnMessage={true}
+          alwaysShowSend={true}
+          messages={messages}
+          renderBubble={renderBubble}
+          renderInputToolbar={renderInputToolbar}
+          renderSend={renderSend}
+          onSend={messages => onSend(messages)}
+          user={{
+            _id: userId,
+            name: userName,
+            avatar: userPhoto,
+          }}
+        />
+        <View
+          style={{
+            height: '1%',
+            width: '100%',
+          }}
+        />
+      </View>
+    </>
+  );
 }
-

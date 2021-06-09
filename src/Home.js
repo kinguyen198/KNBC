@@ -10,7 +10,7 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import io from 'socket.io-client';
-import {firebase} from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //importing screens
 import ChatsScreen from './Chats';
@@ -19,69 +19,68 @@ import SettingsScreen from './Settings';
 
 //create a tab navigator for homescreen
 export default function Home() {
-  var user = firebase.auth().currentUser;
-  const [userName, setUserName] = useState('');
-  const [userId, setUserId] = useState('');
-  const [userPhotoUrl, setUserPhotoUrl] = useState('');
   const Tab = createMaterialTopTabNavigator();
-  const login = async () => {
-    console.log(user.displayName);
-    let payload = {name: user.displayName, id: user.uid, photo: user.photoURL};
+  const url = 'http://127.0.0.1:5000';
+  const getUser = async () => {
     try {
-      let res = await axios.post('http://127.0.0.1:5000' + '/login', payload);
+      const jsonValue = await AsyncStorage.getItem('user');
+      const user = JSON.parse(jsonValue);
+      login(user)
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const login = async (user) => {
+    let payload = {name: user.userName, id: user.userId, photo: user.userPhoto};
+    try {
+      let res = await axios.post(url + '/login', payload);
       let data = res.data;
-      console.log(data)
+      console.log(data);
       if (data._id !== '') {
-        setUserId(data._id);
-        setUserName(data.name);
-        setUserPhotoUrl(data.photo);
+        // setUserId(data._id);
+        // setUserName(data.name);
+        // setUserPhoto(data.photo);
       }
     } catch (error) {
       console.log(error);
     }
   };
   useEffect(() => {
-    console.log(user);
-    setUserId(user.uid);
-    setUserName(user.displayName);
-    setUserPhotoUrl(user.photoURL);
-    login();
+    getUser();
   }, []);
+
   return (
     <SafeAreaView style={{flex: 1}}>
-      {userId ? (
-        <Tab.Navigator>
+      <Tab.Navigator>
         <Tab.Screen
-            name="ChatsScreen"
-            component={ChatsScreen}
-            options={{
-              tabBarLabel: 'Chat',
-              tabBarIcon: ({color, size}) => (
-                <Icon name="ios-chatboxes" color={tintColor} size={28} />
-              ),
-            }}></Tab.Screen>
-          <Tab.Screen
-            name="PeoplesScreen"
-            component={PeoplesScreen}
-            options={{
-              tabBarLabel: 'People',
-              tabBarIcon: ({color, size}) => (
-                <Icon name="ios-contacts" color={tintColor} size={28} />
-              ),
-            }}></Tab.Screen>
-          <Tab.Screen
-            name="SettingsScreen"
-            component={SettingsScreen}
-            options={{
-              tabBarLabel: 'Setting',
-              tabBarIcon: ({color, size}) => (
-                <Icon name="ios-chatboxes" color={color} size={28} />
-              ),
-            }}></Tab.Screen>
-        </Tab.Navigator>
-      ) : (
-        <ActivityIndicator size="large" color="#46CF76" style={{flex: 1}} />
-      )}
+          name="ChatsScreen"
+          component={ChatsScreen}
+          options={{
+            tabBarLabel: 'Chat',
+            tabBarIcon: ({color, size}) => (
+              <Icon name="ios-chatboxes" color={color} size={28} />
+            ),
+          }}></Tab.Screen>
+        <Tab.Screen
+          name="PeoplesScreen"
+          component={PeoplesScreen}
+          options={{
+            tabBarLabel: 'People Active',
+            tabBarIcon: ({color, size}) => (
+              <Icon name="ios-contacts" color={color} size={28} />
+            ),
+          }}></Tab.Screen>
+        <Tab.Screen
+          name="SettingsScreen"
+          component={SettingsScreen}
+          options={{
+            tabBarLabel: 'Setting',
+            tabBarIcon: ({color, size}) => (
+              <Icon name="ios-chatboxes" color={color} size={28} />
+            ),
+          }}></Tab.Screen>
+      </Tab.Navigator>
     </SafeAreaView>
   );
 }

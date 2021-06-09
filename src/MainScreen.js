@@ -20,6 +20,7 @@ import Geolocation from '@react-native-community/geolocation';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {firebase} from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 GoogleSignin.configure({
   webClientId: '',
@@ -96,9 +97,58 @@ export default function MainScreen({navigation, route}) {
       },
     });
   };
-  const Chat = () => {
+  const Chat = async user => {
     //goi view sceen
-    navigation.navigate('LoginScreen');
+    // try {
+    //   const jsonValue = await AsyncStorage.getItem('user');
+    //   const user = JSON.parse(jsonValue);
+    //   if (user !== null) {
+    //     console.log(user);
+    //     navigation.navigate('Home');
+    //   } else {
+    //     loginWithGoogle(async user => {
+    //       try {
+    //         let newUser = {
+    //           userName: user.displayName,
+    //           userPhoto: !user.photoURL
+    //             ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
+    //             : user.photoURL,
+    //           userId: user.uid,
+    //         };
+    //         await AsyncStorage.setItem('user', JSON.stringify(newUser));
+    //         navigation.navigate('Home');
+    //       } catch (e) {
+    //         console.log(e);
+    //       }
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.log(e);
+    // }
+    try {
+      const jsonValue = await AsyncStorage.getItem('user');
+      const userStorage = JSON.parse(jsonValue);
+      if (userStorage !== null) {
+        console.log(1);
+        navigation.navigate('Home');
+      } else {
+        console.log(2);
+        if (typeof user === 'object') {
+          let newUser = {
+            userName: user.userName,
+            userPhoto: user.userPhoto == ''
+              ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
+              : user.userPhoto,
+            userId: user.userId,
+          };
+          await AsyncStorage.setItem('user', JSON.stringify(newUser), () => {
+            navigation.navigate('Home');
+          });
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
   const onWebViewMessage = event => {
     console.log('Message received from webview');
@@ -163,7 +213,8 @@ export default function MainScreen({navigation, route}) {
         break;
       case 'chat':
         console.log('chat');
-        Chat()
+        const user = msgData.data;
+        Chat(user);
         break;
     }
   };

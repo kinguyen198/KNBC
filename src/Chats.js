@@ -5,40 +5,50 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, ScrollView, Image, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Icon1 from 'react-native-vector-icons/FontAwesome';
-
 import axios from 'axios';
 import io from 'socket.io-client';
-import {firebase} from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ChatsScreen({navigation, route}) {
-  var user = firebase.auth().currentUser;
-  const [userId, setUserId] = useState(user.uid);
-  const [userPhoto, setUserPhoto] = useState(user.photoURL);
-  const [userName, setUserName] = useState(user.displayName);
+  const [userId, setUserId] = useState();
+  const [userPhoto, setUserPhoto] = useState(null);
+  const [userName, setUserName] = useState();
   const [chats, setChats] = useState([]);
-  var socket = io('http://127.0.0.1:5000');
+  const url = 'http://127.0.0.1:5000';
+  var socket = io(url);
+
+  const getUser = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('user');
+      const user = JSON.parse(jsonValue);
+      setUserId(user.userId);
+      setUserName(user.userName);
+      setUserPhoto(user.userPhoto);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   useEffect(() => {
-    getMessages();
+    getUser();
     socket.connect();
     socket.on('incommingMessage', () => {
       console.log('called');
       getMessage();
     });
   }, []);
+  useEffect(() => {
+    getMessages();
+  }, [userId]);
   const getMessages = async () => {
     try {
-      let response = await axios.get(
-        'http://127.0.0.1:5000' + '/chats/' + userId,
-      );
+      let response = await axios.get(url + '/chats/' + userId);
       if (response.status === 200) {
         let chats = [];
         response.data.map(async active => {
           if (active.sender === userId) {
-            await axios
-              .get('http://127.0.0.1:5000/find/' + active.reciever)
-              .then(res => {
-                console.log(active.messages[0]);
+            await axios.get(url + '/find/' + active.reciever).then(res => {
+              if (active != null) {
                 const chatItem = {
                   message: active.messages[0].text
                     ? active.messages[0].text
@@ -46,11 +56,11 @@ export default function ChatsScreen({navigation, route}) {
                   user: res.data,
                 };
                 chats.push(chatItem);
-              });
+              }
+            });
           } else {
-            await axios
-              .get('http://127.0.0.1:5000/find/' + active.sender)
-              .then(res => {
+            await axios.get(url + '/find/' + active.sender).then(res => {
+              if (active != null) {
                 const chatItem = {
                   message: active.messages[0].text
                     ? active.messages[0].text
@@ -58,7 +68,8 @@ export default function ChatsScreen({navigation, route}) {
                   user: res.data,
                 };
                 chats.push(chatItem);
-              });
+              }
+            });
           }
           setChats(chats);
         });
@@ -136,7 +147,7 @@ export default function ChatsScreen({navigation, route}) {
             </View>
           </TouchableOpacity>
           {chats.map(chatItem => (
-            <React.Fragment key={chatItem.senderId}>
+            <React.Fragment key={chatItem.user.id}>
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('Messages', {

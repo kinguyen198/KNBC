@@ -1,7 +1,6 @@
 import QRCodeScreen from './src/QRCodeScreen';
 import MainScreen from './src/MainScreen';
 import Home from './src/Home';
-import LoginScreen from './src/Login';
 import Messages from './src/Messages';
 import Broadcast from './src/Broadcast';
 import React, {useState, useEffect} from 'react';
@@ -31,16 +30,6 @@ export default function App({navigation}) {
           component={QRCodeScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="LoginScreen"
-          component={LoginScreen}
-          options={{headerShown: false}}
-        />
-        {/* <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          options={{headerShown: false}}
-        /> */}
         <Stack.Screen
           name="Home"
           component={Home}

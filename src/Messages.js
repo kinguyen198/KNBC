@@ -11,6 +11,7 @@ import {
   Text,
   BackHandler,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import {
   GiftedChat,
@@ -26,12 +27,13 @@ import io from 'socket.io-client';
 
 export default function Messages({navigation, route}) {
   const [userId, setUserId] = useState('');
-  const [userPhoto, setUserPhoto] = useState('');
+  const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState('');
   const [recieverId, setRecieverId] = useState('');
   const [messages, setMessages] = useState([]);
   const {params} = route;
-  var socket = io('http://127.0.0.1:5000/chatsocket');
+  const url = 'http://127.0.0.1:5000';
+  var socket = io(url + '/chatsocket');
   //styling chat bubbles
   const renderBubble = props => {
     return (
@@ -110,7 +112,7 @@ export default function Messages({navigation, route}) {
     return (
       <>
         <Send {...props}>
-        <Icon
+          <Icon
             name="send"
             style={{
               color: '#46CF76',
@@ -199,8 +201,8 @@ export default function Messages({navigation, route}) {
       handleBackPress,
     );
     setUserId(params.senderId);
-    setUserName(params.userName);
-    setUserPhoto(params.userPhoto);
+    setUserName(params.senderName);
+    setUserPhoto(params.senderPhoto);
     setRecieverId(params.userId);
     getMessages();
 
@@ -215,11 +217,7 @@ export default function Messages({navigation, route}) {
   const getMessages = async () => {
     try {
       let response = await axios.get(
-        'http://127.0.0.1:5000' +
-          '/chats/' +
-          params.senderId +
-          '/' +
-          params.userId,
+        url + '/chats/' + params.senderId + '/' + params.userId,
       );
       if (response.status === 200) {
         //console.log(response.data)
@@ -235,11 +233,11 @@ export default function Messages({navigation, route}) {
     return true;
   };
 
-  const onSend = async (message ) => {
+  const onSend = async message => {
     //console.log(message)
     ///setMessages(previousMessages => GiftedChat.append(previousMessages, message))
-    const tmpMess = messages
-    const newMess = GiftedChat.append(tmpMess,message)
+    const tmpMess = messages;
+    const newMess = GiftedChat.append(tmpMess, message);
     socket.emit('newMessage', 'sent');
     try {
       let formData = {
@@ -247,10 +245,7 @@ export default function Messages({navigation, route}) {
         reciever: recieverId,
         messages: newMess,
       };
-      let response = await axios.post(
-        'http://127.0.0.1:5000' + '/chats/',
-        formData,
-      );
+      let response = await axios.post(url + '/chats/', formData);
       if (response.status === 200) {
         //console.log(response.data);
         socket.emit('newMessage', 'sent');
@@ -273,22 +268,37 @@ export default function Messages({navigation, route}) {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: '4%',
-            paddingTop:'6%'
+            paddingTop: '6%',
           }}>
           <TouchableOpacity
-            style={{flex: 1}}
+            style={{flex: 0.75}}
             onPress={() => {
               navigation.goBack();
             }}>
             <Icon name="ios-arrow-back" size={32} style={{color: '#46CF76'}} />
           </TouchableOpacity>
+          <Image
+            source={{
+              uri:
+                params.userPhoto == ''
+                  ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
+                  : params.userPhoto,
+            }}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 70,
+              borderColor: '#444',
+              borderWidth: 2,
+            }}
+          />
           <Text
             style={{
+              marginLeft: '1%',
               flex: 1,
               fontSize: 18,
               color: '#f2f2f2',
               textAlign: 'center',
-              
             }}>
             {params.userName}
           </Text>

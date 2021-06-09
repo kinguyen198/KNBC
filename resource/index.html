@@ -165,8 +165,13 @@
         });
     }
     function Chat() { 
-        window.webViewBridge.send('chat', window.counter, function(res) {
-            alert(typeof res==="object"?JSON.stringify(res):res);
+        const user = {
+            userName: "Test" + Date.now(),
+            userId:"123123"+Date.now(),
+            userPhoto:""
+        }
+        window.webViewBridge.send('chat', user, function(res) {
+            // alert(typeof res==="object"?JSON.stringify(res):res);
         }, function(err) {
 			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
         });

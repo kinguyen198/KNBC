@@ -11,19 +11,28 @@ import {View, Text, Image, Switch, TouchableOpacity} from 'react-native';
 // } from 'react-native-fbsdk';
 import {StackAction, CommonActions} from '@react-navigation/native';
 import io from 'socket.io-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/auth';
 
 export default function Settings({navigation}) {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
-  const [userPhotoUrl, setUserPhotoUrl] = useState('');
-
+  const [userPhoto, setUserPhoto] = useState(null);
+  const url = 'http://127.0.0.1:5000';
+  var socket = io(url);
+  const getUser = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('user');
+      const user = JSON.parse(jsonValue);
+      setUserId(user.userId);
+      setUserName(user.userName);
+      setUserPhoto(user.userPhoto);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   useEffect(() => {
-    var user = firebase.auth().currentUser;
-    console.log(user);
-    setUserId(user.uid);
-    setUserName(user.displayName);
-    setUserPhotoUrl(user.photoURL);
+    getUser();
   }, []);
 
   return (
@@ -54,10 +63,7 @@ export default function Settings({navigation}) {
           }}>
           <Image
             source={{
-              uri:
-                userPhotoUrl == ''
-                  ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
-                  : userPhotoUrl,
+              uri: userPhoto,
             }}
             style={{
               width: 60,
@@ -84,14 +90,14 @@ export default function Settings({navigation}) {
             style={{
               flex: 3,
               width: '100%',
-              height: 50,
+              height: 55,
               flexDirection: 'column',
-              marginHorizontal: '5%',
+              marginHorizontal: '4%',
               marginTop: '1%',
             }}>
             <Text
               style={{
-                fontSize: 30,
+                fontSize: 25,
                 //fontFamily: 'Cairo-SemiBold',
                 color: 'black',
               }}>
@@ -122,9 +128,12 @@ export default function Settings({navigation}) {
       </View>
       <View>
         <TouchableOpacity
-          onPress={() => {
-            firebase.auth().signOut();
-            navigation.navigate('MainScreen');
+          onPress={async () => {
+            await AsyncStorage.removeItem('user', () => {
+              socket.disconnect();
+              firebase.auth().signOut();
+              navigation.navigate('MainScreen');
+            });
           }}>
           <Text
             style={{
