@@ -14,6 +14,7 @@
 		2E111BBEE511DBAE8C07CFA2 /* libPods-KNBC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C4C42498E602D1515D4827BD /* libPods-KNBC.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		84360641266B735000B1CCCB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 84360640266B735000B1CCCB /* GoogleService-Info.plist */; };
+		848D79EE26749D37000CCE3E /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848D79ED26749D37000CCE3E /* File.swift */; };
 		8CC3FE37598A464726828A0B /* libPods-KNBC-KNBCTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B886EEFD082714D51B72B0A /* libPods-KNBC-KNBCTests.a */; };
 		CE9F3136266BB16300F90176 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = CE9F3135266BB16300F90176 /* assets */; };
 /* End PBXBuildFile section */
@@ -51,6 +52,9 @@
 		7AD8766018574FDFA82E5D50 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = KNBC/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84360640266B735000B1CCCB /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../GoogleService-Info.plist"; sourceTree = "<group>"; };
+		848D799A26749952000CCE3E /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
+		848D79EC26749D37000CCE3E /* KNBC-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KNBC-Bridging-Header.h"; sourceTree = "<group>"; };
+		848D79ED26749D37000CCE3E /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		88DF6E2DAEB14F418EB224EC /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		94970B5ECDDDBE5B7DE59399 /* Pods-KNBC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KNBC.release.xcconfig"; path = "Target Support Files/Pods-KNBC/Pods-KNBC.release.xcconfig"; sourceTree = "<group>"; };
 		9B861AFA461240CF954CF5F5 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
@@ -112,6 +116,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				848D79ED26749D37000CCE3E /* File.swift */,
+				848D79EC26749D37000CCE3E /* KNBC-Bridging-Header.h */,
 			);
 			name = KNBC;
 			sourceTree = "<group>";
@@ -159,6 +165,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				848D799A26749952000CCE3E /* Bridging-Header.h */,
 				CE9F3135266BB16300F90176 /* assets */,
 				84360640266B735000B1CCCB /* GoogleService-Info.plist */,
 				13B07FAE1A68108700A75B9A /* KNBC */,
@@ -254,7 +261,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1230;
 					};
 				};
 			};
@@ -473,6 +480,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				848D79EE26749D37000CCE3E /* File.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -492,6 +500,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4CA7272B772862FF6C32D3EF /* Pods-KNBC-KNBCTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -519,6 +528,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BD64D5B11F4EB66840E0C98C /* Pods-KNBC-KNBCTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = KNBCTests/Info.plist;
@@ -560,6 +570,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.knbc;
 				PRODUCT_NAME = KNBC;
+				SWIFT_OBJC_BRIDGING_HEADER = "KNBC-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -586,6 +597,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.knbc;
 				PRODUCT_NAME = KNBC;
+				SWIFT_OBJC_BRIDGING_HEADER = "KNBC-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

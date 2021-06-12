@@ -25,6 +25,7 @@
     <button id="scan" onclick="GPSHandler();" >GPS</button> <br/>
     <button id="scanQR" onclick="ScanQR();" >Scan</button> <br/>
     <button id="chat" onclick="Chat();" >Chat</button> <br/>
+    <button id="chat" onclick="Login();" >Login User</button> <br/>
 </div>
 <script>
 	var promiseChain = Promise.resolve();
@@ -172,6 +173,13 @@
         }
         window.webViewBridge.send('chat', user, function(res) {
             // alert(typeof res==="object"?JSON.stringify(res):res);
+        }, function(err) {
+			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
+        });
+    }
+    function Login() { 
+        window.webViewBridge.send('login', window.counter, function(res) {
+            alert(typeof res==="object"?JSON.stringify(res):res);
         }, function(err) {
 			window.document.getElementById("container").setAttribute("style", "background-color: " + err);
         });

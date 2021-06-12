@@ -150,6 +150,9 @@ export default function MainScreen({navigation, route}) {
       console.log(e);
     }
   };
+  const LoginUser =  () =>{
+    navigation.navigate('Login')
+  }
   const onWebViewMessage = event => {
     console.log('Message received from webview');
     console.log();
@@ -216,7 +219,10 @@ export default function MainScreen({navigation, route}) {
         const user = msgData.data;
         Chat(user);
         break;
+      case 'login':
+        LoginUser()
     }
+
   };
 
   useEffect(() => {}, []);

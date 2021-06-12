@@ -3,20 +3,29 @@
 
 //importing libraries
 import React, {useState, useEffect} from 'react';
-import {View, Text, ScrollView, Image, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useIsFocused} from '@react-navigation/native';
 
 export default function ChatsScreen({navigation, route}) {
+  const [refreshing, setRefreshing] = React.useState(false);
   const [userId, setUserId] = useState();
   const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState();
   const [chats, setChats] = useState([]);
   const url = 'http://127.0.0.1:5000';
-  var socket = io(url);
-  
+  var socket = io(url + '/chatsocket');
+  const isFocused = useIsFocused();
   const getUser = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('user');
@@ -28,20 +37,7 @@ export default function ChatsScreen({navigation, route}) {
       console.log(e);
     }
   };
-
-  useEffect(() => {
-    getUser();
-    socket.connect();
-    socket.on('incommingMessage', () => {
-      console.log('called Chats');
-      getMessage();
-    });
-  }, []);
-  useEffect(() => {
-    getMessages();
-  }, [userId]);
-
-  const getMessages = async () => {
+  var getMessages = async () => {
     try {
       let response = await axios.get(url + '/chats/' + userId);
       if (response.status === 200) {
@@ -54,7 +50,9 @@ export default function ChatsScreen({navigation, route}) {
                 const chatItem = {
                   message: response.data[i].messages[0].text
                     ? response.data[i].messages[0].text
-                    : 'Sent an image',
+                    : response.data[i].messages[0].image
+                    ? 'Sent an image'
+                    : 'Sent an video',
                   user: res.data,
                 };
                 chats.push(chatItem);
@@ -66,7 +64,9 @@ export default function ChatsScreen({navigation, route}) {
                 const chatItem = {
                   message: response.data[i].messages[0].text
                     ? response.data[i].messages[0].text
-                    : 'Sent an image',
+                    : response.data[i].messages[0].image
+                    ? 'Sent an image'
+                    : 'Sent an video',
                   user: res.data,
                 };
                 chats.push(chatItem);
@@ -79,10 +79,52 @@ export default function ChatsScreen({navigation, route}) {
       console.error(error);
     }
   };
+
+  const wait = timeout => {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
+  useEffect(() => {
+    getUser();
+    getMessages();
+    socket.connect();
+    socket.on('incommingMessage', async data => {});
+    socket.on('message', data => {
+      const msg = data[0];
+      // const chats  = getChats();
+      //getMessages();
+      // if(chats){
+      //    chats.map(item => {
+      //       //check step step user in list
+      //       if(item.user.id==msg.sender){
+      //          item.message = msg.message.text;
+      //       }
+      //    });
+      //
+      // }
+      // setChats(chats);
+    });
+    socket.on('typing', data => {
+      console.log('type: ', data);
+    });
+  }, []);
+  useEffect(() => {
+    getMessages();
+  }, [userId]);
+  useEffect(() => {
+    getMessages();
+  }, [isFocused]);
+
   return (
     <View>
       <View>
         <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           style={{
             paddingLeft: '5%',
             paddingHorizontal: '7%',
@@ -182,6 +224,22 @@ export default function ChatsScreen({navigation, route}) {
                     }}
                     style={{width: 60, height: 60, borderRadius: 70}}
                   />
+                  {chatItem.user.isActive ? (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        backgroundColor: '#46CF76',
+                        width: 15,
+                        height: 15,
+                        left: 45,
+                        top: 40,
+                        borderRadius: 100,
+                        borderColor: '#222',
+                        borderWidth: 2,
+                      }}
+                    />
+                  ) : null}
+
                   <View
                     style={{
                       flex: 2,

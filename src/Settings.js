@@ -3,7 +3,15 @@
 
 //importing libraries
 import React, {useState, useEffect} from 'react';
-import {View, Text, Image, Switch, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  Switch,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  StyleSheet,
+} from 'react-native';
 // import {
 //   LoginManager,
 //   GraphRequest,
@@ -13,6 +21,7 @@ import {StackAction, CommonActions} from '@react-navigation/native';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/auth';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function Settings({navigation}) {
   const [userName, setUserName] = useState('');
@@ -36,7 +45,7 @@ export default function Settings({navigation}) {
   }, []);
 
   return (
-    <View>
+    <View style={{padding: 16}}>
       <Text
         style={{
           color: '#f4f4f4',
@@ -47,87 +56,54 @@ export default function Settings({navigation}) {
         }}>
         Settings
       </Text>
-      <View
-        style={{
-          paddingHorizontal: '7%',
-          marginBottom: '18%',
-          paddingBottom: '1.5%',
-        }}>
-        <View
-          style={{
-            flex: 2,
-            flexDirection: 'row',
-            marginVertical: '2%',
-            paddingVertical: '4%',
-            borderRadius: 10,
-          }}>
-          <Image
-            source={{
-              uri: userPhoto,
-            }}
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 70,
-              borderColor: '#333',
-              borderWidth: 2,
-            }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              backgroundColor: '#46CF76',
-              width: 18,
-              height: 18,
-              left: 50,
-              top: 52,
-              borderRadius: 100,
-              borderColor: '#222',
-              borderWidth: 3,
-            }}
-          />
-          <View
-            style={{
-              flex: 3,
-              width: '100%',
-              height: 55,
-              flexDirection: 'column',
-              marginHorizontal: '4%',
-              marginTop: '1%',
-            }}>
-            <Text
-              style={{
-                fontSize: 25,
-                //fontFamily: 'Cairo-SemiBold',
-                color: 'black',
-              }}>
-              {userName}
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                //fontFamily: 'Cairo-Light',
-                color: 'lightgrey',
-              }}>
-              {'@' + userId}
-            </Text>
-          </View>
-        </View>
-      </View>
-      <View>
+      <View style={styles.white_view}>
+        <Icon
+          name="settings-sharp"
+          type="ionicon"
+          color="grey"
+          style={{fontSize: 32}}
+        />
         <Text
           style={{
-            marginLeft: '7%',
+            marginLeft: '5%',
             fontSize: 22,
-            //fontFamily: 'Cairo-SemiBold',
-            color: '#555',
+            color: 'black',
             paddingVertical: '3%',
           }}>
           Set server address
         </Text>
       </View>
-      <View>
-        <TouchableOpacity
+      <View style={styles.white_view}>
+        <Icon
+          name="home"
+          type="ionicon"
+          color="grey"
+          style={{fontSize: 32}}
+        />
+        <TouchableWithoutFeedback
+          onPress={async () => {
+            navigation.navigate('MainScreen');
+          }}>
+          <Text
+            style={{
+              //width: '100%',
+              marginLeft: '5%',
+              fontSize: 22,
+              paddingVertical: '3%',
+            }}>
+            Back to Home
+          </Text>
+        </TouchableWithoutFeedback>
+      </View>
+
+      <View style={styles.white_view}>
+        <Icon
+          name="exit"
+          type="ionicon"
+          color="grey"
+          style={{fontSize: 32}}
+        />
+        <TouchableWithoutFeedback
           onPress={async () => {
             await AsyncStorage.removeItem('user', () => {
               socket.disconnect();
@@ -146,8 +122,37 @@ export default function Settings({navigation}) {
             }}>
             Logout
           </Text>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
       </View>
     </View>
   );
 }
+const styles = StyleSheet.create({
+  white_view: {
+    flexDirection: 'row',
+    padding: 24,
+    backgroundColor: '#fff',
+    color: '#555',
+    borderRadius: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: '#eaeaea',
+  },
+  title: {
+    marginTop: 16,
+    paddingVertical: 8,
+    borderWidth: 4,
+    borderColor: '#20232a',
+    borderRadius: 6,
+    backgroundColor: '#61dafb',
+    color: '#20232a',
+    textAlign: 'center',
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+});

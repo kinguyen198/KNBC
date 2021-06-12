@@ -55,7 +55,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We need to access your location </string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need to access  your microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>
