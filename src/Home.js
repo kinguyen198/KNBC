@@ -41,43 +41,25 @@ import {
 export default function Home({navigation}) {
   const heightStatusBar = getStatusBarHeight();
   const Tab = createMaterialTopTabNavigator();
-  const [user, setUser] = useState('');
+  const [user, setUser] = useState();
   const [isShowPopUp, setIsShowPopUp] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const url = 'http://127.0.0.1:5000';
   const getUser = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('user');
       const user = JSON.parse(jsonValue);
-      login(user);
+      setUser(user);
     } catch (e) {
       console.log(e);
     }
   };
 
-  const login = async user => {
-    let payload = {name: user.userName, id: user.userId, photo: user.userPhoto};
-    try {
-      let res = await axios.post(url + '/login', payload);
-      let data = res.data;
-      console.log(data);
-      if (data._id !== '') {
-        // setUserId(data._id);
-        // setUserName(data.name);
-        // setUserPhoto(data.photo);
-        setUser(user);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
   const hideModal = () => {
     setModalVisible(false);
   };
   useEffect(() => {
     getUser();
-    console.log(StatusBar.currentHeight);
   }, []);
 
   return (
@@ -93,10 +75,10 @@ export default function Home({navigation}) {
           style={{
             flex: 1,
             flexDirection: 'row',
-            marginHorizontal: '5%',
+            marginHorizontal: '3%',
           }}>
           <Image
-            source={{uri: user.userPhoto}}
+            source={{uri: user ? user.userPhoto : null}}
             style={{
               width: 50,
               height: 50,
@@ -112,7 +94,7 @@ export default function Home({navigation}) {
               alignSelf: 'flex-end',
               marginBottom: '2%',
             }}>
-            {user.userName}
+            {user ? user.userName : ''}
           </Text>
         </View>
 
@@ -172,7 +154,7 @@ export default function Home({navigation}) {
               <Icon name="ios-chatboxes" color={color} size={28} />
             ),
           }}></Tab.Screen>
-        <Tab.Screen
+        {/* <Tab.Screen
           name="PeoplesScreen"
           component={PeoplesScreen}
           options={{
@@ -189,7 +171,7 @@ export default function Home({navigation}) {
             tabBarIcon: ({color, size}) => (
               <Icon name="ios-chatboxes" color={color} size={28} />
             ),
-          }}></Tab.Screen>
+          }}></Tab.Screen> */}
       </Tab.Navigator>
       <CreateGroup modalVisible={modalVisible} hideModal={hideModal} />
     </View>

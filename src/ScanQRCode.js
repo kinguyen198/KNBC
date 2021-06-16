@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from './component/NavigationBar';
+import * as Config from '../Config';
+import Share from 'react-native-share';
+
 export default function ScanQR({navigation, route}) {
   const {user} = route.params;
   const backScreen = () => {
@@ -25,45 +28,49 @@ export default function ScanQR({navigation, route}) {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          paddingHorizontal: 20,
+          paddingHorizontal: '5%',
         }}>
         <View
           style={{
             width: '100%',
             backgroundColor: 'grey',
             //paddingHorizontal: 10,
-            paddingBottom: '20%',
+            paddingVertical: '17%',
+            paddingBottom: '10%',
             alignItems: 'center',
             borderRadius: 20,
             //justifyContent:'center',
           }}>
-          <Image
-            source={{uri: user.userPhoto}}
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 70,
-              marginBottom: '-3%',
-              bottom: '10%',
-              backgroundColor: 'red',
-            }}
-          />
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: '10%',
-            }}>
-            {user.userName}
-          </Text>
+          <View
+            style={{position: 'absolute', top: '-7%', alignItems: 'center'}}>
+            <Image
+              source={{uri: user.userPhoto}}
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 70,
+                backgroundColor: 'blue',
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: 'bold',
+                color: 'white',
+                marginTop: '5%',
+                marginBottom: '5%',
+              }}>
+              {user.userName}
+            </Text>
+          </View>
+
           <Image
             source={{
               uri: 'https://images.viblo.asia/5974cb6b-ec70-41d0-9074-d4319b62f4c7.png',
             }}
             style={{
-              width: 250,
-              height: 250,
+              width: Dimensions.get('screen').height * 0.3,
+              height: Dimensions.get('screen').height * 0.3,
             }}
           />
         </View>
@@ -89,9 +96,11 @@ export default function ScanQR({navigation, route}) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-            onPress={()=>{navigation.navigate('CameraScan')}}
+          onPress={() => {
+            navigation.navigate('CameraScan');
+          }}
           style={{
-            marginTop: '15%',
+            marginTop: '10%',
             backgroundColor: '#34a8eb',
             paddingVertical: '5%',
             width: '70%',

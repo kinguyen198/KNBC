@@ -9,6 +9,8 @@ import io from 'socket.io-client';
 import {firebase} from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
+import * as Config from '../Config'
+import Share from 'react-native-share';
 
 export default function PeoplesScreen({navigation, route}) {
   const [userId, setUserId] = useState('');
@@ -120,7 +122,7 @@ export default function PeoplesScreen({navigation, route}) {
     socket.on('update', () => {
       console.log('Ceeeeeeeeeeee');
       setTimeout(() => {
-        userActive();
+        // userActive();
       }, 2000);
     });
   }, []);

@@ -16,70 +16,69 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useIsFocused} from '@react-navigation/native';
+import * as Config from '../Config';
 
 export default function ChatsScreen({navigation, route}) {
   const [refreshing, setRefreshing] = React.useState(false);
-  const [userId, setUserId] = useState();
-  const [userPhoto, setUserPhoto] = useState(null);
-  const [userName, setUserName] = useState();
   const [chats, setChats] = useState([]);
-  const url = 'http://127.0.0.1:5000';
+  const [user, setUser] = useState();
+  const url = Config.socket.url;
+
   var socket = io(url + '/chatsocket');
   const isFocused = useIsFocused();
-  const getUser = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('user');
-      const user = JSON.parse(jsonValue);
-      setUserId(user.userId);
-      setUserName(user.userName);
-      setUserPhoto(user.userPhoto);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  var getMessages = async () => {
-    try {
-      let response = await axios.get(url + '/chats/' + userId);
-      if (response.status === 200) {
-        let chats = [];
-        for (var i = 0; i < response.data.length; i++) {
-          if (response.data[i].sender == userId) {
-            await axios
-              .get(url + '/find/' + response.data[i].reciever)
-              .then(res => {
-                const chatItem = {
-                  message: response.data[i].messages[0].text
-                    ? response.data[i].messages[0].text
-                    : response.data[i].messages[0].image
-                    ? 'Sent an image'
-                    : 'Sent an video',
-                  user: res.data,
-                };
-                chats.push(chatItem);
-              });
-          } else {
-            await axios
-              .get(url + '/find/' + response.data[i].sender)
-              .then(res => {
-                const chatItem = {
-                  message: response.data[i].messages[0].text
-                    ? response.data[i].messages[0].text
-                    : response.data[i].messages[0].image
-                    ? 'Sent an image'
-                    : 'Sent an video',
-                  user: res.data,
-                };
-                chats.push(chatItem);
-              });
-          }
-        }
-        setChats(chats);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+
+  const getUser = () => {
+    Config.parse_user(user => {
+      setUser(user);
+    });
   };
 
+  const getRoom = () => {
+    if (user) {
+      Config.server.post(
+        'ajax/user.php',
+        {method: 'listrooms', code: user.token},
+        rooms => {
+          var chats = [];
+          for (var i = 0; i < rooms.length; i++) {
+            var data = rooms[i];
+            var latest = data.latest;
+            const chatItem = null;
+
+            if (data.type == 'r') {
+              chatItem = {
+                message: latest.text
+                  ? latest.text
+                  : latest.image
+                  ? 'Sent an image'
+                  : 'Sent an video',
+                user: {
+                  name: data.title,
+                  id: data._id,
+                  photo: data.avatar,
+                },
+              };
+            } else {
+              chatItem = {
+                message: latest.text
+                  ? latest.text
+                  : latest.image
+                  ? 'Sent an image'
+                  : 'Sent an video',
+                user: {
+                  name: data.reciever.name,
+                  id: data._id,
+                  photo: data.reciever.avatar,
+                },
+              };
+            }
+            chats.push(chatItem);
+          }
+          setChats(chats);
+        },
+      );
+    }
+  };
   const wait = timeout => {
     return new Promise(resolve => setTimeout(resolve, timeout));
   };
@@ -89,7 +88,6 @@ export default function ChatsScreen({navigation, route}) {
   }, []);
   useEffect(() => {
     getUser();
-    getMessages();
     socket.connect();
     socket.on('incommingMessage', async data => {});
     socket.on('message', data => {
@@ -112,10 +110,14 @@ export default function ChatsScreen({navigation, route}) {
     });
   }, []);
   useEffect(() => {
-    getMessages();
-  }, [userId]);
+    if (user) {
+      getRoom();
+    }
+  }, [user]);
   useEffect(() => {
-    getMessages();
+    if (user) {
+      getRoom();
+    }
   }, [isFocused]);
 
   return (
@@ -140,7 +142,7 @@ export default function ChatsScreen({navigation, route}) {
               });
               // console.log(this.props);
             }}>
-            <View
+            {/* <View
               style={{
                 flex: 2,
                 flexDirection: 'row',
@@ -182,7 +184,7 @@ export default function ChatsScreen({navigation, route}) {
                   Chat with the global community
                 </Text>
               </View>
-            </View>
+            </View> */}
           </TouchableOpacity>
           {chats.map(chatItem => (
             <React.Fragment key={chatItem.user.id}>
@@ -192,9 +194,9 @@ export default function ChatsScreen({navigation, route}) {
                     userName: chatItem.user.name,
                     userId: chatItem.user.id,
                     userPhoto: chatItem.user.photo,
-                    senderId: userId,
-                    senderName: userName,
-                    senderPhoto: userPhoto,
+                    senderId: user.userId,
+                    senderName: user.userName,
+                    senderPhoto: user.userPhoto,
                   });
                 }}>
                 <View

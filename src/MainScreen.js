@@ -13,6 +13,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
 import Geolocation from '@react-native-community/geolocation';
@@ -21,6 +22,7 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {firebase} from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Config from '../Config';
 
 GoogleSignin.configure({
   webClientId: '',
@@ -125,37 +127,39 @@ export default function MainScreen({navigation, route}) {
     // } catch (e) {
     //   console.log(e);
     // }
-    try {
-      const jsonValue = await AsyncStorage.getItem('user');
-      const userStorage = JSON.parse(jsonValue);
-      if (userStorage !== null) {
-        console.log(1);
+    // try {
+    // const jsonValue = await AsyncStorage.getItem('user');
+    // const userStorage = JSON.parse(jsonValue);
+    // if (userStorage !== null) {
+    //   console.log(1);
+    //   navigation.navigate('Home');
+    // } else {
+    // console.log(2);
+    if (typeof user === 'object') {
+      let newUser = {
+        userName: user.userName,
+        userPhoto:
+          user.userPhoto == ''
+            ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
+            : user.userPhoto,
+        userId: user.userId,
+        code: user.code,
+      };
+
+      await AsyncStorage.setItem('user', JSON.stringify(newUser), () => {
         navigation.navigate('Home');
-      } else {
-        console.log(2);
-        if (typeof user === 'object') {
-          let newUser = {
-            userName: user.userName,
-            userPhoto: user.userPhoto == ''
-              ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
-              : user.userPhoto,
-            userId: user.userId,
-          };
-          await AsyncStorage.setItem('user', JSON.stringify(newUser), () => {
-            navigation.navigate('Home');
-          });
-        }
-      }
-    } catch (e) {
-      console.log(e);
+      });
     }
+    //   }
+    // } catch (e) {
+    //   console.log(e);
+    // }
   };
-  const LoginUser =  () =>{
-    navigation.navigate('Login')
-  }
+  const LoginUser = () => {
+    navigation.navigate('Login');
+  };
   const onWebViewMessage = event => {
     console.log('Message received from webview');
-    console.log();
     let msgData;
     try {
       msgData = JSON.parse(event.nativeEvent.data);
@@ -165,17 +169,6 @@ export default function MainScreen({navigation, route}) {
       return;
     }
     switch (msgData.targetFunc) {
-      case 'handleDataReceived':
-        setText2(`Message from web view ${msgData.data}`),
-          (msgData.isSuccessfull = true);
-        msgData.args = [msgData.data % 2 ? 'green' : 'red'];
-        // myWebView.injectedJavaScript(
-        //   `window.postMessage('${JSON.stringify(msgData)}', '*');`,
-        // );
-        myWebView.current.injectJavaScript(
-          `window.postMessage('${JSON.stringify(msgData)}', '*');`,
-        );
-        break;
       case 'logingoogle':
         console.log('Login');
         //logOut();
@@ -220,11 +213,94 @@ export default function MainScreen({navigation, route}) {
         Chat(user);
         break;
       case 'login':
-        LoginUser()
+        LoginUser();
+        break;
+      case 'share':
+        if (msgData.message && msgData.url) {
+          Config.share.text(msgData.title, msgData.message + msgData.url);
+        } else {
+          if (msgData.url) {
+            Config.share.link(msgData.title, msgData.url);
+          } else {
+            Config.share.text(msgData.title, msgData.message);
+          }
+        }
+
+        break;
+    }
+  };
+  const onShouldStartLoadWithRequest = request => {
+    var matches = request.url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+    var domain = matches && matches[1];
+    if (Config.server.url.includes(domain)) {
+      return true;
+    }
+    if (request.url.includes('iframe=true')) {
+      return true;
+    }
+    if (request.url.includes('open=true')) {
+      Linking.openURL(request.url);
+      return false;
+    }
+    //ext
+    var ext = Config.utils.getFileExtension3(request.url);
+    switch (ext) {
+      case 'mp3':
+      case 'mp4':
+      case 'wma':
+      case 'flv':
+      case 'mpeg':
+        return true;
     }
 
+    if (!/^[data:text, about:blank]/.test(request.url)) {
+      console.log(request.url);
+      if (
+        request.url.startsWith('tel:') ||
+        request.url.startsWith('mailto:') ||
+        request.url.startsWith('maps:') ||
+        request.url.startsWith('geo:') ||
+        request.url.startsWith('sms:')
+      ) {
+        Linking.openURL(request.url).catch(er => {
+          console.log('Failed to open Link:', er.message);
+        });
+        return false;
+      } else {
+        if (request.url.startsWith(Config.server.schema)) {
+          const path = request.url.replace(Config.server.schema, '');
+          var regex = /[?&]([^=#]+)=([^&#]*)/g,
+            params = {},
+            match;
+          while ((match = regex.exec(path))) {
+            params[match[1]] = match[2];
+          }
+          path = path.split('?')[0];
+          if (path.startsWith('share')) {
+            //share
+          } else if (path.startsWith('add')) {
+            //share
+          } else if (path.startsWith('send')) {
+            //share
+          }
+          console.log(params);
+          return false;
+        } else {
+          //skip
+          if (
+            request.url.startsWith('wvjbscheme://') ||
+            request.url.includes('://localhost')
+          ) {
+            return true;
+          }
+          //open all in default
+          Linking.openURL(request.url);
+          return false;
+        }
+      }
+    }
+    return true;
   };
-
   useEffect(() => {}, []);
   // useEffect(() => {
   //   getOneTimeLocation();
@@ -242,13 +318,19 @@ export default function MainScreen({navigation, route}) {
         originWhitelist={['*']}
         allowsInlineMediaPlayback={true}
         scrollEnabled={false}
-        source={require('../resource/index.html')}
-        // source= {
-        //   {uri: Platform.OS === "android"
+        // source={{uri: 'https://hcm.ahlupos.com/test/chatroom/my.php?user=azs2nd'}}
+        //source={require('../resource/index.html')}
+        source={
+          Platform.OS === 'android'
+            ? {uri: 'file:///android_asset/index.html'}
+            : require('../resource/index.html')
+        }
+        // source={{
+        //   uri:
+        //     Platform.OS === 'android'
         //       ? 'file:///android_asset/index.html'
-        //       : 'assets/index.html'
-        //   }
-        // }
+        //       : '/assets/index.html',
+        // }}
         //source={{ html: '<h1>This is a static HTML source!</h1>' }}
         onMessage={onWebViewMessage}
         allowFileAccess={true}
@@ -257,6 +339,7 @@ export default function MainScreen({navigation, route}) {
         allowFileAccessFromFileURLs={true}
         mixedContentMode="always"
         sharedCookiesEnabled={true}
+        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         // onShouldStartLoadWithRequest={(request) => {
         //   // If we're loading the current URI, allow it to load
         //   return true;

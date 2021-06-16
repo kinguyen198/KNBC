@@ -15,6 +15,8 @@ import NavigationBar from './component/NavigationBar';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {RNCamera} from 'react-native-camera';
 import {getStatusBarHeight} from 'react-native-status-bar-height';
+import * as Config from '../Config'
+import Share from 'react-native-share';
 
 export default function CameraScan({navigation, route}) {
   const SCREEN_HEIGHT = Dimensions.get('window').height;

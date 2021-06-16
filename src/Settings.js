@@ -22,6 +22,8 @@ import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
+import * as Config from '../Config'
+import Share from 'react-native-share';
 
 export default function Settings({navigation}) {
   const [userName, setUserName] = useState('');

@@ -28,7 +28,9 @@ import {getStatusBarHeight} from 'react-native-status-bar-height';
 import NavigationBar from './component/NavigationBar';
 import Video from 'react-native-video';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import * as Config from '../Config'
 import Share from 'react-native-share';
+
 export default function Broadcast({navigation, route}) {
   const heightStatusBar = getStatusBarHeight();
 

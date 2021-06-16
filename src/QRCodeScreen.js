@@ -8,6 +8,9 @@ import {
 } from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {RNCamera} from 'react-native-camera';
+import * as Config from '../Config'
+import Share from 'react-native-share';
+
 export default function QRCodeScreen({navigation, route}) {
   const [isShowCamera, setIsShowCamera] = useState(false);
   const onSuccess = e => {

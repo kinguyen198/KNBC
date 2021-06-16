@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from './component/NavigationBar';
+import * as Config from '../Config';
+import Share from 'react-native-share';
+
 export default function AddFriend({navigation, route}) {
   const [phone, setPhone] = useState('');
   const backScreen = () => {
@@ -71,9 +74,10 @@ export default function AddFriend({navigation, route}) {
               flexDirection: 'row',
               paddingLeft: '3%',
               paddingVertical: '3%',
+              alignItems: 'center',
             }}>
             <TextInput
-              style={{width: '70%', fontSize: 16}}
+              style={{width: '70%', fontSize: 16, paddingVertical: '2%'}}
               placeholder={'Nhập số điện thoại'}
               placeholderTextColor={'rgba(0,0,0,0.3)'}
               onChangeText={value => {
@@ -86,7 +90,7 @@ export default function AddFriend({navigation, route}) {
                 marginLeft: '2%',
                 backgroundColor: phone !== '' ? '#34a8eb' : 'rgba(0,0,0,0.3)',
                 paddingVertical: '1.5%',
-                paddingHorizontal: '8%',
+                paddingHorizontal: '10%',
                 borderRadius: 30,
               }}>
               <Text style={{color: 'white', fontSize: 16}}>Tìm</Text>
@@ -101,7 +105,9 @@ export default function AddFriend({navigation, route}) {
           }}>
           <Button
             title="Quét mã QR"
-            onPress={()=>{navigation.navigate('CameraScan')}}
+            onPress={() => {
+              navigation.navigate('CameraScan');
+            }}
             description="Thêm bạn bằng quét mã QR"
             icon="qr-code-outline"
           />

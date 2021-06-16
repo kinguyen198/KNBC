@@ -10,81 +10,198 @@ import {
   StyleSheet,
   Dimensions,
   TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from './component/NavigationBar';
+import * as Config from '../Config';
+import {
+  TouchableWithoutFeedback,
+  ScrollView,
+} from 'react-native-gesture-handler';
+
 export default function Register({navigation, route}) {
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [rePassword, setRePassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const [textError, setTextError] = useState('');
+  const register = () => {
+    setTextError('');
+    Config.server.post(
+      'ajax/user.php',
+      {
+        method: 'signup',
+        user: userName,
+        password: password,
+        repeat_password: rePassword,
+        email: email,
+        phone: phone,
+      },
+      res => {
+        const action = [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.navigate('Login');
+            },
+          },
+        ];
+        if (res.code == 1) {
+          Alert.alert('Notification', res.message, action);
+        } else {
+          setTextError(res.error);
+        }
+      },
+    );
+  };
+
   return (
-    <View
-      style={{
+    <ScrollView
+      scrollEnabled={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: '10%',
       }}>
-      <Text style={{marginBottom: '5%', fontWeight: 'bold', fontSize: 30}}>
-        REGISTER
-      </Text>
-      <TextInput
+      <KeyboardAvoidingView
         style={{
-          width: '100%',
-          height: 40,
-          backgroundColor: 'grey',
-          marginBottom: '3%',
-          color: 'white',
-          paddingLeft: '2%',
-          borderRadius: 10,
-        }}
-        placeholder={'Username'}
-        placeholderTextColor={'white'}
-      />
-      <TextInput
-        style={{
-          borderRadius: 10,
-
-          paddingLeft: '2%',
-          width: '100%',
-          height: 40,
-          backgroundColor: 'grey',
-          marginBottom: '3%',
-          color: 'white',
-        }}
-        placeholder={'Email'}
-        placeholderTextColor={'white'}
-      />
-      <TextInput
-        style={{
-          borderRadius: 10,
-
-          paddingLeft: '2%',
-          width: '100%',
-          height: 40,
-          backgroundColor: 'grey',
-          marginBottom: '5%',
-          color: 'white',
-        }}
-        placeholder={'Password'}
-        placeholderTextColor={'white'}
-      />
-
-      <TouchableOpacity
-        onPress={() => {
-          navigation.navigate('Login');
-        }}
-        style={{
-          height: 40,
-          width: '50%',
-          backgroundColor: '#34a8eb',
+          flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '5%',
-          borderRadius: 10,
-        }}>
-        <Text style={{color: 'white'}}>Register</Text>
-      </TouchableOpacity>
-      <Text  onPress={() => {
-          navigation.navigate('Login');
-        }} style={{color: '#34a8eb'}}>Login</Text>
-    </View>
+          paddingHorizontal: '10%',
+        }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}>
+        <View>
+          <Text style={{marginBottom: '5%', fontWeight: 'bold', fontSize: 30}}>
+            REGISTER
+          </Text>
+        </View>
+
+        <TextInput
+          style={{
+            width: '100%',
+            height: 40,
+            backgroundColor: 'grey',
+            marginBottom: '3%',
+            color: 'white',
+            paddingLeft: '2%',
+            borderRadius: 10,
+          }}
+          onChangeText={text => {
+            setUserName(text);
+          }}
+          placeholder={'Username'}
+          placeholderTextColor={'white'}
+        />
+
+        <TextInput
+          secureTextEntry={true}
+          style={{
+            borderRadius: 10,
+            paddingLeft: '2%',
+            width: '100%',
+            height: 40,
+            backgroundColor: 'grey',
+            marginBottom: '5%',
+            color: 'white',
+          }}
+          placeholder={'Password'}
+          placeholderTextColor={'white'}
+          onChangeText={text => {
+            setPassword(text);
+          }}
+        />
+        <TextInput
+          secureTextEntry={true}
+          style={{
+            borderRadius: 10,
+            paddingLeft: '2%',
+            width: '100%',
+            height: 40,
+            backgroundColor: 'grey',
+            marginBottom: '5%',
+            color: 'white',
+          }}
+          placeholder={'Re-Password'}
+          placeholderTextColor={'white'}
+          onChangeText={text => {
+            setRePassword(text);
+          }}
+        />
+        <TextInput
+          style={{
+            borderRadius: 10,
+
+            paddingLeft: '2%',
+            width: '100%',
+            height: 40,
+            backgroundColor: 'grey',
+            marginBottom: '5%',
+            color: 'white',
+          }}
+          placeholder={'Email'}
+          placeholderTextColor={'white'}
+          onChangeText={text => {
+            setEmail(text);
+          }}
+        />
+        <TextInput
+          style={{
+            borderRadius: 10,
+            paddingLeft: '2%',
+            width: '100%',
+            height: 40,
+            backgroundColor: 'grey',
+            marginBottom: '3%',
+            color: 'white',
+          }}
+          placeholder={'Phone'}
+          placeholderTextColor={'white'}
+          onChangeText={text => {
+            setPhone(text);
+          }}
+        />
+        {textError ? (
+          <View>
+            <Text
+              style={{
+                color: 'red',
+                marginBottom: '5%',
+                fontWeight: 'bold',
+                fontSize: 16,
+              }}>
+              {'Notice: ' + textError}
+            </Text>
+          </View>
+        ) : null}
+
+        <TouchableOpacity
+          onPress={register}
+          style={{
+            height: 40,
+            width: '50%',
+            backgroundColor: '#34a8eb',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '5%',
+            borderRadius: 10,
+          }}>
+          <Text style={{color: 'white'}}>Register</Text>
+        </TouchableOpacity>
+        <View>
+          <Text
+            onPress={() => {
+              navigation.navigate('Login');
+            }}
+            style={{color: '#34a8eb'}}>
+            Login
+          </Text>
+        </View>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 }

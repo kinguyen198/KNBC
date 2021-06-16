@@ -25,7 +25,6 @@ import {
   Composer,
 } from 'react-native-gifted-chat';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import Share from 'react-native-share';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-picker';
@@ -33,10 +32,13 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import {getStatusBarHeight} from 'react-native-status-bar-height';
 import Video from 'react-native-video';
+import * as Config from '../Config';
+import Share from 'react-native-share';
 
 export default function Messages({navigation, route}) {
   const heightStatusBar = getStatusBarHeight();
-
+  var videoRef = useRef(null);
+  const [user, setUser] = useState();
   const [userId, setUserId] = useState('');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState('');
@@ -46,10 +48,16 @@ export default function Messages({navigation, route}) {
   const [playing, setPlaying] = useState(false);
   const [endVideo, setEndVideo] = useState(false);
   const {params} = route;
-  const url = 'http://127.0.0.1:5000';
+
+  const url = Config.socket.url;
   var socket = io(url + '/chatsocket');
-  var videoRef = useRef(null);
-  
+
+  const getUser = () => {
+    Config.parse_user(user => {
+      setUser(user);
+    });
+  };
+
   function matchYoutubeUrl(url) {
     var p =
       /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
@@ -165,7 +173,7 @@ export default function Messages({navigation, route}) {
                 position: 'absolute',
                 width: '8%',
                 marginLeft: '4%',
-                marginBottom: '0.5%',
+                marginBottom: Platform.OS == 'ios'?'0.5%':'1%',
               }}
               onPress={handleChoosePhoto}>
               <Icon
@@ -183,6 +191,10 @@ export default function Messages({navigation, route}) {
             marginHorizontal: 10,
             borderRadius: 80,
             justifyContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'center',
+            //backgroundColor:'red',
+            //height: 50,
           }}
           textInputProps={{
             style: {
@@ -192,7 +204,7 @@ export default function Messages({navigation, route}) {
               alignItems: 'center',
               marginLeft: '17%',
               marginRight: -20,
-              marginBottom: '3%',
+              marginBottom: Platform.OS == 'ios' ? '3%' : null,
             },
             multiline: false,
             returnKeyType: 'go',
@@ -272,58 +284,56 @@ export default function Messages({navigation, route}) {
           type: 'image/*',
         });
         //ToastAndroid.show('Uploading...', ToastAndroid.LONG);
-        axios
-          .post('https://hcm.ahlupos.com/test/chatroom/upload.php', formData)
-          .then(res => {
-            if (res.status === 200) {
-              console.log(res.status);
-              let {data} = res;
-              if (data.code == 1) {
-                const id = messages.length + 1;
-                var imageMsg = [];
-                if (source.uri.type == 'image/jpeg') {
-                  imageMsg = [
-                    {
-                      _id: id,
-                      text: '',
-                      createdAt: new Date(),
-                      user: {
-                        _id: userId,
-                        name: userName,
-                        avatar: userPhoto,
-                      },
-                      image: data.url,
+        axios.post(Config.server.url_upload, formData).then(res => {
+          if (res.status === 200) {
+            console.log(res.status);
+            let {data} = res;
+            if (data.code == 1) {
+              const id = messages.length + 1;
+              var imageMsg = [];
+              if (source.uri.type == 'image/jpeg') {
+                imageMsg = [
+                  {
+                    _id: id,
+                    text: '',
+                    createdAt: new Date(),
+                    user: {
+                      _id: userId,
+                      name: userName,
+                      avatar: userPhoto,
                     },
-                  ];
-                } else {
-                  imageMsg = [
-                    {
-                      _id: id,
-                      text: '',
-                      createdAt: new Date(),
-                      user: {
-                        _id: userId,
-                        name: userName,
-                        avatar: userPhoto,
-                      },
-                      video: data.url,
-                    },
-                  ];
-                }
-
-                //send image
-                onSend(imageMsg);
-                imageMsg = [];
+                    image: data.url,
+                  },
+                ];
               } else {
-                alert('Upload image error');
+                imageMsg = [
+                  {
+                    _id: id,
+                    text: '',
+                    createdAt: new Date(),
+                    user: {
+                      _id: userId,
+                      name: userName,
+                      avatar: userPhoto,
+                    },
+                    video: data.url,
+                  },
+                ];
               }
+
+              //send image
+              onSend(imageMsg);
+              imageMsg = [];
             } else {
-              ToastAndroid.show(
-                'Uploading failed. Try again',
-                ToastAndroid.SHORT,
-              );
+              alert('Upload image error');
             }
-          });
+          } else {
+            ToastAndroid.show(
+              'Uploading failed. Try again',
+              ToastAndroid.SHORT,
+            );
+          }
+        });
       }
     });
   };
@@ -420,39 +430,6 @@ export default function Messages({navigation, route}) {
     );
   };
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress,
-    );
-    setUserId(params.senderId);
-    setUserName(params.senderName);
-    setUserPhoto(params.senderPhoto);
-    setRecieverId(params.userId);
-    getMessages();
-
-    socket.connect();
-    socket.on('incommingMessage', data => {
-      //console.log('chat',data);
-      getMessages();
-    });
-
-    return () => backHandler.remove();
-  }, []);
-  const getMessages = async () => {
-    try {
-      let response = await axios.get(
-        url + '/chats/' + params.senderId + '/' + params.userId,
-      );
-      if (response.status === 200) {
-        //console.log(response.data)
-        setMessages(GiftedChat.append([], response.data));
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const handleBackPress = () => {
     navigation.goBack(); // works best when the goBack is async
     return true;
@@ -494,6 +471,38 @@ export default function Messages({navigation, route}) {
       console.error(error);
     }
   };
+
+  const getMessages = async () => {
+    if (user) {
+      Config.server.post('ajax/chat.php', {
+        method: 'fetch',
+        r: '',
+        code: user.token,
+      });
+    }
+  };
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
+    setUserId(params.senderId);
+    setUserName(params.senderName);
+    setUserPhoto(params.senderPhoto);
+    setRecieverId(params.userId);
+    getMessages();
+
+    socket.connect();
+    socket.on('incommingMessage', data => {
+      //console.log('chat',data);
+      getMessages();
+    });
+
+    return () => backHandler.remove();
+  }, []);
+  useEffect(() => {
+    getMessages();
+  }, [user]);
   return (
     <>
       <View style={{backgroundColor: 'white', flex: 1}}>
@@ -584,9 +593,7 @@ export default function Messages({navigation, route}) {
               ];
               onSend(videoMsg);
               return;
-            } else if (
-              messages[0].text.includes('youtube.com/watch?v=') == true
-            ) {
+            } else if (messages[0].text.includes('youtube.com/?v=') == true) {
               console.log(messages[0].text);
               const id = messages.length + 1;
               let videoMsg = [

@@ -10,6 +10,8 @@ import {
   Modal,
   StyleSheet,
   TouchableWithoutFeedback,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from './component/NavigationBar';
@@ -17,6 +19,8 @@ import {getStatusBarHeight} from 'react-native-status-bar-height';
 import {ScrollView} from 'react-native-gesture-handler';
 import CustomMultiPicker from './component/multipleSelect';
 import {cos} from 'react-native-reanimated';
+import * as Config from '../Config';
+import Share from 'react-native-share';
 
 export default function CreateGroup(props) {
   const heightStatusBar = getStatusBarHeight();
@@ -185,137 +189,141 @@ export default function CreateGroup(props) {
       onRequestClose={() => {
         console.log('close modal');
       }}>
-      <View style={{flex: 1}}>
-        <View
-          style={{
-            paddingTop: heightStatusBar,
-            backgroundColor: 'rgba(0,0,0,0.2)',
-          }}></View>
-        <View
-          style={{
-            backgroundColor: 'rgba(0,0,0,0.2)',
-            flexDirection: 'row',
-            //height: '10%',
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: '4%',
-            paddingTop: '1%',
-            paddingBottom: '1%',
-          }}>
-          <TouchableOpacity
-            style={{flex: 0.75, paddingVertical: '2%'}}
-            onPress={() => {
-              setSelectUsers([]);
-              props.hideModal();
-            }}>
-            <Text style={{color: 'rgba(0,0,0,0.5)'}}>Huỷ</Text>
-          </TouchableOpacity>
-          <Text
-            style={{
-              marginLeft: '3%',
-              flex: 1,
-              fontSize: 18,
-              color: '#f2f2f2',
-              textAlign: 'center',
-            }}>
-            Nhóm mới
-          </Text>
-          <TouchableOpacity
-            style={{flex: 1, paddingVertical: '2%'}}
-            onPress={props.hideModal}>
-            <Text style={{color: 'rgba(0,0,0,0.5)', alignSelf: 'flex-end'}}>
-              Tạo
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{flex: 1, backgroundColor: 'white'}}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{flex: 1}}>
           <View
             style={{
+              paddingTop: heightStatusBar,
+              backgroundColor: 'rgba(0,0,0,0.2)',
+            }}></View>
+          <View
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.2)',
               flexDirection: 'row',
-              paddingVertical: '2%',
-            }}>
-            <TouchableOpacity style={{paddingHorizontal: '3%'}}>
-              <View
-                style={{
-                  width: 50,
-                  height: 50,
-                  backgroundColor: 'rgba(0,0,0,0.3)',
-                  borderRadius: 100,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <Icon name="camera" size={30} color="grey" />
-              </View>
-            </TouchableOpacity>
-            <TextInput
-              style={{width: '70%', fontSize: 16}}
-              placeholder={'Đặt tên nhóm'}
-              placeholderTextColor={'rgba(0,0,0,0.3)'}
-              onChangeText={value => {}}
-            />
-          </View>
-          <View
-            style={{
-              marginTop: '1%',
-              flexDirection: 'row',
-              paddingHorizontal: '3%',
-              borderRadius: 20,
-              backgroundColor: 'rgba(0,0,0,0.1)',
-              marginHorizontal: '3%',
-              paddingVertical: '1%',
-            }}>
-            <Icon name="ios-search-outline" size={25} color="grey" />
-            <TextInput
-              style={{
-                width: '70%',
-                fontSize: 15,
-                marginLeft: '3%',
-                height: 30,
-                borderRadius: 20,
-              }}
-              placeholder={'Tìm kiếm'}
-              placeholderTextColor={'rgba(0,0,0,0.3)'}
-              onChangeText={value => {
-                setTextSearch(value.toLocaleLowerCase());
-              }}
-            />
-          </View>
-          <View
-            style={{
-              paddingVertical: '2%',
-              marginTop: '1%',
+              //height: '10%',
+              width: '100%',
               alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: '4%',
+              paddingTop: '1%',
+              paddingBottom: '1%',
             }}>
+            <TouchableOpacity
+              style={{flex: 0.75, paddingVertical: '2%'}}
+              onPress={() => {
+                setSelectUsers([]);
+                props.hideModal();
+              }}>
+              <Text style={{color: 'rgba(0,0,0,0.5)'}}>Huỷ</Text>
+            </TouchableOpacity>
             <Text
-              style={{fontWeight: 'bold', fontSize: 16, marginBottom: '3%'}}>
-              Danh bạ
+              style={{
+                marginLeft: '3%',
+                flex: 1,
+                fontSize: 18,
+                color: '#f2f2f2',
+                textAlign: 'center',
+              }}>
+              Nhóm mới
             </Text>
+            <TouchableOpacity
+              style={{flex: 1, paddingVertical: '2%'}}
+              onPress={props.hideModal}>
+              <Text style={{color: 'rgba(0,0,0,0.5)', alignSelf: 'flex-end'}}>
+                Tạo
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{flex: 1, backgroundColor: 'white'}}>
             <View
               style={{
-                width: '100%',
-                height: 1,
-                backgroundColor: 'rgba(0,0,0,0.1)',
-              }}
-            />
-          </View>
-          <ScrollView style={{paddingHorizontal: '3%'}}>
-            {arrayWithSearch.map(active => (
-              <React.Fragment key={active._id}>
-                {renderUser(active)}
+                flexDirection: 'row',
+                paddingVertical: '2%',
+              }}>
+              <TouchableOpacity style={{paddingHorizontal: '3%'}}>
                 <View
                   style={{
-                    width: '100%',
-                    height: 1,
-                    backgroundColor: 'grey',
-                    opacity: 0.3,
-                  }}
-                />
-              </React.Fragment>
-            ))}
-          </ScrollView>
+                    width: 50,
+                    height: 50,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    borderRadius: 100,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Icon name="camera" size={30} color="grey" />
+                </View>
+              </TouchableOpacity>
+              <TextInput
+                style={{width: '70%', fontSize: 16}}
+                placeholder={'Đặt tên nhóm'}
+                placeholderTextColor={'rgba(0,0,0,0.3)'}
+                onChangeText={value => {}}
+              />
+            </View>
+            <View
+              style={{
+                marginTop: '1%',
+                flexDirection: 'row',
+                paddingHorizontal: '3%',
+                borderRadius: 20,
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                marginHorizontal: '3%',
+                paddingVertical: '1%',
+                alignItems: 'center',
+              }}>
+              <Icon name="ios-search-outline" size={25} color="grey" />
+              <TextInput
+                style={{
+                  width: '90%',
+                  marginLeft: '3%',
+                  paddingVertical: Platform.OS == 'android' ? '0.5%' : null,
+                  borderRadius: 20,
+                  fontSize: 15,
+                }}
+                placeholder={'Tìm kiếm'}
+                placeholderTextColor={'rgba(0,0,0,0.3)'}
+                onChangeText={value => {
+                  setTextSearch(value.toLocaleLowerCase());
+                }}
+              />
+            </View>
+
+            <View
+              style={{
+                paddingVertical: '2%',
+                marginTop: '1%',
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{fontWeight: 'bold', fontSize: 16, marginBottom: '3%'}}>
+                Danh bạ
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  height: 1,
+                  backgroundColor: 'rgba(0,0,0,0.1)',
+                }}
+              />
+            </View>
+            <ScrollView style={{paddingHorizontal: '3%'}}>
+              {arrayWithSearch.map(active => (
+                <React.Fragment key={active._id}>
+                  {renderUser(active)}
+                  <View
+                    style={{
+                      width: '100%',
+                      height: 1,
+                      backgroundColor: 'grey',
+                      opacity: 0.3,
+                    }}
+                  />
+                </React.Fragment>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
