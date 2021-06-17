@@ -15,6 +15,7 @@ import {
   Platform,
   Button,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import {
   GiftedChat,
@@ -34,7 +35,7 @@ import {getStatusBarHeight} from 'react-native-status-bar-height';
 import Video from 'react-native-video';
 import * as Config from '../Config';
 import Share from 'react-native-share';
-
+import EditMessage from './component/editMessage';
 export default function Messages({navigation, route}) {
   const heightStatusBar = getStatusBarHeight();
   var videoRef = useRef(null);
@@ -47,8 +48,10 @@ export default function Messages({navigation, route}) {
   const [playVideo, setPlayVideo] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [endVideo, setEndVideo] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const {params} = route;
 
+  var page = 0;
   const url = Config.socket.url;
   var socket = io(url + '/chatsocket');
 
@@ -57,7 +60,9 @@ export default function Messages({navigation, route}) {
       setUser(user);
     });
   };
-
+  const hideModal = () => {
+    setShowEdit(false);
+  };
   function matchYoutubeUrl(url) {
     var p =
       /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
@@ -173,7 +178,7 @@ export default function Messages({navigation, route}) {
                 position: 'absolute',
                 width: '8%',
                 marginLeft: '4%',
-                marginBottom: Platform.OS == 'ios'?'0.5%':'1%',
+                marginBottom: Platform.OS == 'ios' ? '0.5%' : '1%',
               }}
               onPress={handleChoosePhoto}>
               <Icon
@@ -346,8 +351,7 @@ export default function Messages({navigation, route}) {
     filename: 'test', // only for base64 file in Android
   };
   const onLongPress = (context, message) => {
-    console.log(context, message);
-    const options = ['Share', 'Cancel'];
+    const options = ['Share', 'Edit', 'Delete', 'Cancel'];
     const cancelButtonIndex = options.length - 1;
     context.actionSheet().showActionSheetWithOptions(
       {
@@ -359,7 +363,7 @@ export default function Messages({navigation, route}) {
           case 0:
             const url = 'https://awesome.contents.com/';
             const title = 'Awesome Contents';
-            const message = 'Please check this out.';
+            const messages = 'Please check this out.';
             const icon =
               'data:<data_type>/<file_extension>;base64,<base64_data>';
             const options = Platform.select({
@@ -378,14 +382,14 @@ export default function Messages({navigation, route}) {
                   },
                   {
                     // For sharing text.
-                    placeholderItem: {type: 'text', content: message},
+                    placeholderItem: {type: 'text', content: messages},
                     item: {
-                      default: {type: 'text', content: message},
-                      message: null, // Specify no text to share via Messages app.
+                      default: {type: 'text', content: messages},
+                      messages: null, // Specify no text to share via Messages app.
                     },
                     linkMetadata: {
                       // For showing app icon on share preview.
-                      title: message,
+                      title: messages,
                     },
                   },
                   {
@@ -397,11 +401,11 @@ export default function Messages({navigation, route}) {
                     item: {
                       default: {
                         type: 'text',
-                        content: `${message} ${url}`,
+                        content: `${messages} ${url}`,
                       },
                     },
                     linkMetadata: {
-                      title: message,
+                      title: messages,
                       icon: icon,
                     },
                   },
@@ -410,7 +414,7 @@ export default function Messages({navigation, route}) {
               default: {
                 title,
                 subject: title,
-                message: `${message} ${url}`,
+                message: `${messages} ${url}`,
               },
             });
             Share.open(options)
@@ -422,6 +426,20 @@ export default function Messages({navigation, route}) {
               });
             break;
           case 1:
+            setShowEdit(true);
+            break;
+          case 2:
+            Config.server.post(
+              'ajax/chat.php',
+              {
+                method: 'edit',
+                r: params.room,
+                id: message._id,
+              },
+              res => {
+                //getMessages();
+              },
+            );
             break;
           default:
             break;
@@ -442,6 +460,7 @@ export default function Messages({navigation, route}) {
     });
   };
   const onSend = async message => {
+    console.log(message);
     socket.emit('message', {
       sender: userId,
       reciever: recieverId,
@@ -461,27 +480,62 @@ export default function Messages({navigation, route}) {
       };
 
       socket.emit('newMessage', formData);
-
-      let response = await axios.post(url + '/chats/', formData);
-      if (response.status === 200) {
-        //console.log(response.data);
-        // socket.emit('newMessage', 'sent');
-      }
+      const type = message[0].text
+        ? 'text'
+        : message[0].image
+        ? 'image'
+        : 'video';
+      Config.server.post(
+        'ajax/chat.php',
+        {
+          //code: user.token,
+          method: 'throw',
+          r: params.room,
+          type: type,
+          message: {
+            _id: message[0]._id,
+            text: message[0].text,
+            createdAt: message[0].createdAt,
+            image: message[0].image ? message[0].image : '',
+            video: message[0].video ? message[0].video : '',
+          },
+        },
+        res => {
+          getMessages();
+        },
+      );
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getMessages = async () => {
+  const getMessages = async => {
     if (user) {
-      Config.server.post('ajax/chat.php', {
-        method: 'fetch',
-        r: '',
-        code: user.token,
-      });
+      Config.server.post(
+        'ajax/chat.php',
+        {
+          method: 'fetch',
+          r: params.room,
+          //code: user.token,
+        },
+        listMess => {
+          console.log(listMess);
+          const newArray = [];
+          const objectArray = Object.entries(listMess.messages);
+          objectArray.forEach(([key, value]) => {
+            value.map(item => {
+              if (typeof item == 'object') {
+                newArray.push(item);
+              }
+            });
+          });
+          setMessages(newArray.reverse());
+        },
+      );
     }
   };
   useEffect(() => {
+    getUser();
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
@@ -490,7 +544,6 @@ export default function Messages({navigation, route}) {
     setUserName(params.senderName);
     setUserPhoto(params.senderPhoto);
     setRecieverId(params.userId);
-    getMessages();
 
     socket.connect();
     socket.on('incommingMessage', data => {
@@ -503,6 +556,14 @@ export default function Messages({navigation, route}) {
   useEffect(() => {
     getMessages();
   }, [user]);
+  const isCloseToTop = ({layoutMeasurement, contentOffset, contentSize}) => {
+    const paddingToTop = 80;
+    return (
+      contentSize.height - layoutMeasurement.height - paddingToTop <=
+      contentOffset.y
+    );
+  };
+
   return (
     <>
       <View style={{backgroundColor: 'white', flex: 1}}>
@@ -559,6 +620,13 @@ export default function Messages({navigation, route}) {
         </View>
         <GiftedChat
           listViewProps={{
+            scrollEventThrottle: 400,
+            onScroll: ({nativeEvent}) => {
+              if (isCloseToTop(nativeEvent)) {
+                page += 1;
+                //getMessages(page);
+              }
+            },
             style: {
               backgroundColor: 'white',
             },
@@ -593,7 +661,10 @@ export default function Messages({navigation, route}) {
               ];
               onSend(videoMsg);
               return;
-            } else if (messages[0].text.includes('youtube.com/?v=') == true) {
+            } else if (
+              messages[0].text.includes('youtube.com/?v=') == true ||
+              messages[0].text.includes('youtube.com/watch?v=') == true
+            ) {
               console.log(messages[0].text);
               const id = messages.length + 1;
               let videoMsg = [
@@ -620,6 +691,8 @@ export default function Messages({navigation, route}) {
             avatar: userPhoto,
           }}
         />
+        <EditMessage modalVisible={showEdit} hideModal={hideModal} />
+
         <View
           style={{
             height: '1%',

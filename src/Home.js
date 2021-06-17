@@ -162,7 +162,7 @@ export default function Home({navigation}) {
             tabBarIcon: ({color, size}) => (
               <Icon name="ios-contacts" color={color} size={28} />
             ),
-          }}></Tab.Screen>
+          }}></Tab.Screen> */}
         <Tab.Screen
           name="SettingsScreen"
           component={SettingsScreen}
@@ -171,7 +171,7 @@ export default function Home({navigation}) {
             tabBarIcon: ({color, size}) => (
               <Icon name="ios-chatboxes" color={color} size={28} />
             ),
-          }}></Tab.Screen> */}
+          }}></Tab.Screen>
       </Tab.Navigator>
       <CreateGroup modalVisible={modalVisible} hideModal={hideModal} />
     </View>

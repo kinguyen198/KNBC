@@ -59,7 +59,9 @@ export default function Register({navigation, route}) {
       },
     );
   };
-
+  useEffect(() => {
+    setTextError('');
+  }, [userName, password, phone, email, rePassword]);
   return (
     <ScrollView
       scrollEnabled={false}
@@ -67,6 +69,15 @@ export default function Register({navigation, route}) {
       contentContainerStyle={{
         flex: 1,
       }}>
+      <Image
+        source={require('../assets/background.jpeg')}
+        style={{
+          width: '100%',
+          height: '100%',
+          resizeMode: 'cover',
+          position: 'absolute',
+        }}
+      />
       <KeyboardAvoidingView
         style={{
           flex: 1,
@@ -75,13 +86,29 @@ export default function Register({navigation, route}) {
           paddingHorizontal: '10%',
         }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}>
+        <Image
+          source={require('../assets/logo.png')}
+          style={{
+            width: '50%',
+            height: '20%',
+            resizeMode: 'contain',
+            marginBottom: '5%',
+          }}
+        />
         <View>
-          <Text style={{marginBottom: '5%', fontWeight: 'bold', fontSize: 30}}>
+          <Text
+            style={{
+              marginBottom: '5%',
+              fontWeight: 'bold',
+              fontSize: 35,
+              color: '#34a8eb',
+            }}>
             REGISTER
           </Text>
         </View>
 
         <TextInput
+          value={userName}
           style={{
             width: '100%',
             height: 40,
@@ -99,6 +126,7 @@ export default function Register({navigation, route}) {
         />
 
         <TextInput
+          value={password}
           secureTextEntry={true}
           style={{
             borderRadius: 10,
@@ -116,6 +144,7 @@ export default function Register({navigation, route}) {
           }}
         />
         <TextInput
+          value={rePassword}
           secureTextEntry={true}
           style={{
             borderRadius: 10,
@@ -133,6 +162,7 @@ export default function Register({navigation, route}) {
           }}
         />
         <TextInput
+          value={email}
           style={{
             borderRadius: 10,
 
@@ -150,6 +180,7 @@ export default function Register({navigation, route}) {
           }}
         />
         <TextInput
+          value={phone}
           style={{
             borderRadius: 10,
             paddingLeft: '2%',

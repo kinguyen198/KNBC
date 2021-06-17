@@ -6,23 +6,47 @@ export const socket = {
   url: '127.0.0.1:5000',
 };
 export const server = {
+  user: null,
+  init: function () {
+    var me = this;
+    parse_user(function (u) {
+      me.user = u;
+    });
+    return this;
+  },
+  // url : 'https://sreal.sreal.vn/',
   url: 'https://hcm.ahlupos.com/test/chatroom/',
+  skip_url: function (url) {
+    return url.includes('ahlupos.com');
+    // return url.includes("sreal.vn");
+  },
+  // url : 'https://hcm.ahlupos.com/test/chatroom/',
   post: async function (url, data, func) {
     console.log('Post =>' + this.url + url + ' with ', data);
 
-    let params = new URLSearchParams();
+    var params = new URLSearchParams();
     for (var i in data) {
-      params.append(i, data[i]);
+      params.append(
+        i,
+        typeof data[i] == 'object' ? JSON.stringify(data[i]) : data[i],
+      );
     }
 
+    if (this.user) {
+      params.append('code', this.user.token);
+    } else {
+      this.init();
+    }
     let res = await axios.post(this.url + url, params);
     res = res.data;
+
     try {
       res = JSON.parse(res);
     } catch (e) {}
 
     console.log(res);
     func(res);
+    return this;
   },
   url_upload: 'https://hcm.ahlupos.com/test/chatroom/upload.php',
   schema: 'knbc://',

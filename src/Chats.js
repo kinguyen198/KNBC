@@ -109,16 +109,12 @@ export default function ChatsScreen({navigation, route}) {
       console.log('type: ', data);
     });
   }, []);
+
   useEffect(() => {
     if (user) {
       getRoom();
     }
-  }, [user]);
-  useEffect(() => {
-    if (user) {
-      getRoom();
-    }
-  }, [isFocused]);
+  }, [isFocused,user]);
 
   return (
     <View>
@@ -133,7 +129,7 @@ export default function ChatsScreen({navigation, route}) {
             marginBottom: '18%',
             paddingBottom: '1.5%',
           }}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => {
               navigation.navigate('Broadcast', {
                 senderId: userId,
@@ -142,7 +138,7 @@ export default function ChatsScreen({navigation, route}) {
               });
               // console.log(this.props);
             }}>
-            {/* <View
+            <View
               style={{
                 flex: 2,
                 flexDirection: 'row',
@@ -184,8 +180,8 @@ export default function ChatsScreen({navigation, route}) {
                   Chat with the global community
                 </Text>
               </View>
-            </View> */}
-          </TouchableOpacity>
+            </View>
+          </TouchableOpacity> */}
           {chats.map(chatItem => (
             <React.Fragment key={chatItem.user.id}>
               <TouchableOpacity
@@ -197,6 +193,7 @@ export default function ChatsScreen({navigation, route}) {
                     senderId: user.userId,
                     senderName: user.userName,
                     senderPhoto: user.userPhoto,
+                    room: chatItem.user.id,
                   });
                 }}>
                 <View

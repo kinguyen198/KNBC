@@ -26,25 +26,7 @@ import * as Config from '../Config'
 import Share from 'react-native-share';
 
 export default function Settings({navigation}) {
-  const [userName, setUserName] = useState('');
-  const [userId, setUserId] = useState('');
-  const [userPhoto, setUserPhoto] = useState(null);
-  const url = 'http://127.0.0.1:5000';
-  var socket = io(url);
-  const getUser = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('user');
-      const user = JSON.parse(jsonValue);
-      setUserId(user.userId);
-      setUserName(user.userName);
-      setUserPhoto(user.userPhoto);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  useEffect(() => {
-    getUser();
-  }, []);
+
 
   return (
     <View style={{padding: 16}}>
@@ -108,9 +90,9 @@ export default function Settings({navigation}) {
         <TouchableWithoutFeedback
           onPress={async () => {
             await AsyncStorage.removeItem('user', () => {
-              socket.disconnect();
-              firebase.auth().signOut();
-              navigation.navigate('MainScreen');
+              //socket.disconnect();
+              //firebase.auth().signOut();
+              navigation.navigate('Login');
             });
           }}>
           <Text
