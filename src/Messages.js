@@ -50,6 +50,7 @@ export default function Messages({navigation, route}) {
   const [endVideo, setEndVideo] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const {params} = route;
+  const [edit, setEdit] = useState();
 
   var page = 0;
   const url = Config.socket.url;
@@ -62,6 +63,7 @@ export default function Messages({navigation, route}) {
   };
   const hideModal = () => {
     setShowEdit(false);
+    getMessages()
   };
   function matchYoutubeUrl(url) {
     var p =
@@ -427,17 +429,23 @@ export default function Messages({navigation, route}) {
             break;
           case 1:
             setShowEdit(true);
+            const editMess = {
+              id: message._id,
+              room: params.room,
+              createdAt: message.createdAt,
+            };
+            setEdit(editMess);
             break;
           case 2:
             Config.server.post(
               'ajax/chat.php',
               {
-                method: 'edit',
+                method: 'delete',
                 r: params.room,
                 id: message._id,
               },
               res => {
-                //getMessages();
+                getMessages();
               },
             );
             break;
@@ -691,7 +699,11 @@ export default function Messages({navigation, route}) {
             avatar: userPhoto,
           }}
         />
-        <EditMessage modalVisible={showEdit} hideModal={hideModal} />
+        <EditMessage
+          modalVisible={showEdit}
+          hideModal={hideModal}
+          edit={edit}
+        />
 
         <View
           style={{

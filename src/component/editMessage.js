@@ -11,12 +11,15 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {getStatusBarHeight} from 'react-native-status-bar-height';
+import * as Config from '../../Config';
 
 export default function EditMessage(props) {
   const heightStatusBar = getStatusBarHeight();
+  const [mess, setMess] = useState('');
   return (
     <Modal
       avoidKeyboard={false}
@@ -26,39 +29,69 @@ export default function EditMessage(props) {
       onRequestClose={() => {
         console.log('close modal');
       }}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalBackground}>
-          <View style={styles.activityIndicatorWrapper}>
-            <Text>Edit message</Text>
-            <TextInput
-              placeholder={'Enter message'}
-              placeholderTextColor={'grey'}
-              style={{
-                paddingLeft: '3%',
-                width: '90%',
-                height: 40,
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                marginTop: '3%',
-                borderRadius: 10,
-                color: 'black',
-              }}
-            />
-            <TouchableOpacity
-              onPress={props.hideModal}
-              style={{
-                backgroundColor: '#34a8eb',
-                paddingVertical: '2%',
-                marginTop: '5%',
-                width: '30%',
-                borderRadius: 10,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Text style={{color: 'white'}}>Done</Text>
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        style={styles.modalBackground}>
+        <View style={styles.activityIndicatorWrapper}>
+          <TouchableOpacity
+            onPress={props.hideModal}
+            style={{
+              position: 'absolute',
+              right: '5%',
+              top: '5%',
+              padding: '1%',
+              alignItems: 'center',
+            }}>
+            <Text style={{fontSize: 16, fontWeight: 'bold'}}>X</Text>
+          </TouchableOpacity>
+          <Text>Edit message</Text>
+          <TextInput
+            onChangeText={text => setMess(text)}
+            autoFocus={true}
+            placeholder={'Enter message'}
+            placeholderTextColor={'grey'}
+            style={{
+              paddingLeft: '3%',
+              width: '90%',
+              height: 40,
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              marginTop: '3%',
+              borderRadius: 10,
+              color: 'black',
+            }}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              Config.server.post(
+                'ajax/chat.php',
+                {
+                  //code: user.token,
+                  method: 'edit',
+                  r: props.edit.room,
+                  id: props.edit.id,
+                  message: {
+                    text: mess,
+                    createdAt: props.createdAt,
+                  },
+                },
+                res => {
+                  props.hideModal();
+                },
+              );
+            }}
+            style={{
+              backgroundColor: '#34a8eb',
+              paddingVertical: '2%',
+              marginTop: '5%',
+              width: '30%',
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={{color: 'white'}}>Done</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -68,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.1)',
     padding: 10,
   },
