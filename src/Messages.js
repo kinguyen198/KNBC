@@ -54,7 +54,8 @@ export default function Messages({navigation, route}) {
 
   var page = 0;
   const url = Config.socket.url;
-  var socket = io(url + '/chatsocket');
+  // var socket = io(url + '/chatsocket');
+  var socket = io(url);
 
   const getUser = () => {
     Config.parse_user(user => {
@@ -63,7 +64,7 @@ export default function Messages({navigation, route}) {
   };
   const hideModal = () => {
     setShowEdit(false);
-    getMessages()
+    getMessages();
   };
   function matchYoutubeUrl(url) {
     var p =
@@ -462,6 +463,7 @@ export default function Messages({navigation, route}) {
   };
   const onInputTextChanged = async message => {
     socket.emit('typing', {
+      room: params.room,
       sender: userId,
       userName: userName,
       message: message,
@@ -482,6 +484,7 @@ export default function Messages({navigation, route}) {
 
     try {
       let formData = {
+        room: params.room,
         sender: userId,
         reciever: recieverId,
         messages: newMess,
@@ -502,7 +505,7 @@ export default function Messages({navigation, route}) {
           type: type,
           message: {
             _id: message[0]._id,
-            text: message[0].text,
+            text: message[0].text ? message[0].text : '',
             createdAt: message[0].createdAt,
             image: message[0].image ? message[0].image : '',
             video: message[0].video ? message[0].video : '',
@@ -556,8 +559,9 @@ export default function Messages({navigation, route}) {
     socket.connect();
     socket.on('incommingMessage', data => {
       //console.log('chat',data);
-      getMessages();
+      // getMessages();
     });
+    socket.emit('subscribe', {room: params.room});
 
     return () => backHandler.remove();
   }, []);
@@ -647,7 +651,9 @@ export default function Messages({navigation, route}) {
           renderInputToolbar={renderInputToolbar}
           renderSend={renderSend}
           onLongPress={onLongPress}
+          onInputTextChanged={onInputTextChanged}
           onSend={messages => {
+            var regex = /(\[map])/;
             if (
               messages[0].text.includes('.mp4') == true ||
               messages[0].text.includes('.mpeg') == true
@@ -689,6 +695,28 @@ export default function Messages({navigation, route}) {
                 },
               ];
               onSend(videoMsg);
+              return;
+            } else if (regex.test(messages[0].text)) {
+              const arrayPos = messages[0].text.slice(5).split(',');
+              const pos = {
+                lat: arrayPos[0],
+                lng: arrayPos[1],
+              };
+              const urlImage = Config.map.static(pos).image
+              const id = messages.length + 1;
+              imageMsg = [
+                {
+                  _id: id,
+                  createdAt: new Date(),
+                  user: {
+                    _id: userId,
+                    name: userName,
+                    avatar: userPhoto,
+                  },
+                  image:urlImage ,
+                },
+              ];
+              onSend(imageMsg);
               return;
             }
             onSend(messages);

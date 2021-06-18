@@ -115,11 +115,12 @@ export default function Login({navigation, route}) {
               color: 'white',
               paddingLeft: '2%',
               borderRadius: 10,
+              textTransform: 'lowercase',
             }}
             placeholder={'Username'}
             placeholderTextColor={'white'}
             onChangeText={text => {
-              setUserName(text);
+              setUserName(text.toLowerCase());
             }}
           />
           <TextInput
@@ -175,6 +176,7 @@ export default function Login({navigation, route}) {
               Register
             </Text>
           </View>
+
         </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>

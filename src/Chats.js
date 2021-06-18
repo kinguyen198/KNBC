@@ -17,67 +17,59 @@ import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useIsFocused} from '@react-navigation/native';
 import * as Config from '../Config';
-
+import {WebView} from 'react-native-webview';
 export default function ChatsScreen({navigation, route}) {
   const [refreshing, setRefreshing] = React.useState(false);
   const [chats, setChats] = useState([]);
   const [user, setUser] = useState();
-  const url = Config.socket.url;
+  const [showWeb, setShowWeb] = useState(false);
+  const [showWebHeight, setShowWebHeight] = useState(100);
 
-  var socket = io(url + '/chatsocket');
+  var socket = io(Config.socket.url);
   const isFocused = useIsFocused();
 
-  const getUser = () => {
-    Config.parse_user(user => {
-      setUser(user);
+  const getRoom = func => {
+    Config.server.post('ajax/user.php', {method: 'listrooms'}, rooms => {
+      var chats = [];
+      for (var i = 0; i < rooms.length; i++) {
+        var data = rooms[i];
+        var latest = data.latest;
+        const chatItem = null;
+
+        if (data.type == 'r') {
+          chatItem = {
+            room: data._id,
+            message: latest.text
+              ? latest.text
+              : latest.image
+              ? 'Sent an image'
+              : 'Sent an video',
+            user: {
+              name: data.title,
+              id: data._id,
+              photo: data.avatar,
+            },
+          };
+        } else {
+          chatItem = {
+            room: data._id,
+            message: latest.text
+              ? latest.text
+              : latest.image
+              ? 'Sent an image'
+              : 'Sent an video',
+            user: {
+              name: data.reciever.name,
+              id: data._id,
+              photo: data.reciever.avatar,
+            },
+          };
+        }
+        chats.push(chatItem);
+      }
+
+      func(chats);
     });
-  };
-
-  const getRoom = () => {
-    if (user) {
-      Config.server.post(
-        'ajax/user.php',
-        {method: 'listrooms', code: user.token},
-        rooms => {
-          var chats = [];
-          for (var i = 0; i < rooms.length; i++) {
-            var data = rooms[i];
-            var latest = data.latest;
-            const chatItem = null;
-
-            if (data.type == 'r') {
-              chatItem = {
-                message: latest.text
-                  ? latest.text
-                  : latest.image
-                  ? 'Sent an image'
-                  : 'Sent an video',
-                user: {
-                  name: data.title,
-                  id: data._id,
-                  photo: data.avatar,
-                },
-              };
-            } else {
-              chatItem = {
-                message: latest.text
-                  ? latest.text
-                  : latest.image
-                  ? 'Sent an image'
-                  : 'Sent an video',
-                user: {
-                  name: data.reciever.name,
-                  id: data._id,
-                  photo: data.reciever.avatar,
-                },
-              };
-            }
-            chats.push(chatItem);
-          }
-          setChats(chats);
-        },
-      );
-    }
   };
   const wait = timeout => {
     return new Promise(resolve => setTimeout(resolve, timeout));
@@ -87,34 +79,56 @@ export default function ChatsScreen({navigation, route}) {
     wait(2000).then(() => setRefreshing(false));
   }, []);
   useEffect(() => {
-    getUser();
     socket.connect();
-    socket.on('incommingMessage', async data => {});
-    socket.on('message', data => {
-      const msg = data[0];
-      // const chats  = getChats();
-      //getMessages();
-      // if(chats){
-      //    chats.map(item => {
-      //       //check step step user in list
-      //       if(item.user.id==msg.sender){
-      //          item.message = msg.message.text;
-      //       }
-      //    });
-      //
-      // }
-      // setChats(chats);
+    socket.on('incommingMessage', async data => {
+      console.log('incommingMessage', data);
     });
-    socket.on('typing', data => {
-      console.log('type: ', data);
+    socket.on('message', async data => {
+      const msg = data.message;
+
+      // console.log(Config.server.rooms);
+      //var l = Config.server.rooms.length;
+      //for (var i = 0; i < l; i++) {
+       //var item = Config.server.rooms[i];
+        //if (item._id == data.room) {
+         // console.log('socket message=>', data);
+        //}
+     // }
+      // var chats = getChats();
+      // getRoom(function(res){
+      //     setChats(res);
+      // });
+      //getRoom();
     });
+    // socket.on('typing', data => {
+    //   console.log('room type: ', data.room);
+    //     var rooms = Config.server.rooms;
+    //     var l = rooms.length;
+    //     for(var i=0; i<l; i++) {
+    //       var item = rooms[i];
+    //       // console.log(item.room);
+    //       if(item.room==data.room){
+    //          console.log("socket type=>",data);
+    //          item.message = data.userName +" is typing...";
+    //          console.log(rooms);
+    //          setChats(rooms);
+    //       }
+    //     }
+    // });
+    Config.server.init();
+    setUser(Config.server.user);
+    //tell server new coming
+    socket.emit('storeClientInfo', {customId: Config.server.user.userId});
   }, []);
 
   useEffect(() => {
     if (user) {
-      getRoom();
+      getRoom(function (res) {
+        Config.server.rooms = res;
+        setChats(res);
+      });
     }
-  }, [isFocused,user]);
+  }, [isFocused, user]);
 
   return (
     <View>
@@ -129,59 +143,11 @@ export default function ChatsScreen({navigation, route}) {
             marginBottom: '18%',
             paddingBottom: '1.5%',
           }}>
-          {/* <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Broadcast', {
-                senderId: userId,
-                senderName: userName,
-                senderPhoto: userPhoto,
-              });
-              // console.log(this.props);
-            }}>
-            <View
-              style={{
-                flex: 2,
-                flexDirection: 'row',
-                //marginVertical: '2%',
-                paddingVertical: '5%',
-                borderRadius: 10,
-              }}>
-              <Image
-                source={{
-                  uri: 'https://i.imgur.com/4vzW11a.png',
-                }}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 70,
-                }}
-              />
-              <View
-                style={{
-                  flex: 2,
-                  flexDirection: 'column',
-                  marginHorizontal: '5%',
-                  marginTop: '1%',
-                }}>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    //fontFamily: 'Cairo-SemiBold',
-                    color: 'black',
-                  }}>
-                  Broadcast
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    //fontFamily: 'Cairo-Light',
-                    color: 'black',
-                  }}>
-                  Chat with the global community
-                </Text>
-              </View>
+          {showWeb ? (
+            <View style={{width: '100%', height: showWebHeight}}>
+              <WebView source={{uri: 'https://google.com'}} />
             </View>
-          </TouchableOpacity> */}
+          ) : null}
           {chats.map(chatItem => (
             <React.Fragment key={chatItem.user.id}>
               <TouchableOpacity
@@ -193,7 +159,7 @@ export default function ChatsScreen({navigation, route}) {
                     senderId: user.userId,
                     senderName: user.userName,
                     senderPhoto: user.userPhoto,
-                    room: chatItem.user.id,
+                    room: chatItem.room,
                   });
                 }}>
                 <View

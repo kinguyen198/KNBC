@@ -23,6 +23,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getStatusBarHeight} from 'react-native-status-bar-height';
+import * as Config from '../Config';
 
 //importing screens
 import ChatsScreen from './Chats';
@@ -45,21 +46,13 @@ export default function Home({navigation}) {
   const [isShowPopUp, setIsShowPopUp] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const getUser = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('user');
-      const user = JSON.parse(jsonValue);
-      setUser(user);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const hideModal = () => {
     setModalVisible(false);
   };
   useEffect(() => {
-    getUser();
+    Config.parse_user(user => {
+      setUser(user);
+    });
   }, []);
 
   return (

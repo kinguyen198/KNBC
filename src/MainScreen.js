@@ -310,7 +310,7 @@ export default function MainScreen({navigation, route}) {
   //   console.log(currentLongitude);
   // }, [currentLongitude, currentLatitude]);
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <WebView
         ref={myWebView}
         //source={{uri: 'https://google.com'}}
@@ -358,7 +358,7 @@ export default function MainScreen({navigation, route}) {
            <Text>logOut</Text>
          </TouchableOpacity>
        )} */}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -366,8 +366,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    //alignItems: 'center',
-    //justifyContent: 'center',
+    justifyContent: 'center',
   },
   containerWeb: {
     width: '100%',

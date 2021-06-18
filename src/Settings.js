@@ -92,7 +92,12 @@ export default function Settings({navigation}) {
             await AsyncStorage.removeItem('user', () => {
               //socket.disconnect();
               //firebase.auth().signOut();
-              navigation.navigate('Login');
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{name: 'Login'}],
+                }),
+              );
             });
           }}>
           <Text

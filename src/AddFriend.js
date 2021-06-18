@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
   StyleSheet,
-  Dimensions,
+  Alert,
   TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -17,7 +17,7 @@ import * as Config from '../Config';
 import Share from 'react-native-share';
 
 export default function AddFriend({navigation, route}) {
-  const [phone, setPhone] = useState('');
+  const [input, setInput] = useState('');
   const backScreen = () => {
     navigation.goBack();
   };
@@ -61,13 +61,29 @@ export default function AddFriend({navigation, route}) {
       </TouchableOpacity>
     </View>
   );
+
+  const addFriend = () => {
+    Config.server.post(
+      'ajax/user.php',
+      {
+        method: 'addfriend',
+        user_id: input,
+      },
+      res => {
+        if (res.message) {
+          Alert.alert('Notification', res.message);
+        }
+        //console.log(res);
+      },
+    );
+  };
   return (
     <View style={{flex: 1}}>
       <NavigationBar title="Thêm bạn" back={backScreen} />
       <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.1)'}}>
         <View style={{backgroundColor: 'white', marginBottom: '2%'}}>
           <Text style={{paddingLeft: '3%', paddingTop: '3%'}}>
-            Thêm bạn bằng số điện thoại
+            Thêm bạn bằng số điện thoại hoặc email
           </Text>
           <View
             style={{
@@ -78,22 +94,23 @@ export default function AddFriend({navigation, route}) {
             }}>
             <TextInput
               style={{width: '70%', fontSize: 16, paddingVertical: '2%'}}
-              placeholder={'Nhập số điện thoại'}
+              placeholder={'Nhập số điện thoại/email'}
               placeholderTextColor={'rgba(0,0,0,0.3)'}
               onChangeText={value => {
-                setPhone(value);
+                setInput(value);
               }}
             />
             <TouchableOpacity
-              disabled={phone === ''}
+              onPress={addFriend}
+              disabled={input === ''}
               style={{
                 marginLeft: '2%',
-                backgroundColor: phone !== '' ? '#34a8eb' : 'rgba(0,0,0,0.3)',
+                backgroundColor: input !== '' ? '#34a8eb' : 'rgba(0,0,0,0.3)',
                 paddingVertical: '1.5%',
-                paddingHorizontal: '10%',
+                paddingHorizontal: '3%',
                 borderRadius: 30,
               }}>
-              <Text style={{color: 'white', fontSize: 16}}>Tìm</Text>
+              <Text style={{color: 'white', fontSize: 16}}>Thêm bạn</Text>
             </TouchableOpacity>
           </View>
         </View>

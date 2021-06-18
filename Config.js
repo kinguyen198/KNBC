@@ -3,9 +3,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Share from 'react-native-share';
 
 export const socket = {
-  url: '127.0.0.1:5000',
+  url: 'https://azservices.work:5000',
 };
 export const server = {
+  rooms: null,
+  rooms_find: function (id) {
+    if (this.rooms) {
+      var l = this.rooms.length;
+      for (var i = 0; i < l; i++) {
+        var item = this.rooms[i];
+        // console.log(item.room);
+        if (item.room == id) {
+          return item;
+        }
+      }
+    }
+    return null;
+  },
   user: null,
   init: function () {
     var me = this;
@@ -25,6 +39,11 @@ export const server = {
     console.log('Post =>' + this.url + url + ' with ', data);
 
     var params = new URLSearchParams();
+    if (this.user) {
+      params.append('code', this.user.token);
+    } else {
+      this.init();
+    }
     for (var i in data) {
       params.append(
         i,
@@ -32,11 +51,6 @@ export const server = {
       );
     }
 
-    if (this.user) {
-      params.append('code', this.user.token);
-    } else {
-      this.init();
-    }
     let res = await axios.post(this.url + url, params);
     res = res.data;
 
@@ -136,5 +150,11 @@ export const parse_user = async fun => {
     fun(JSON.parse(jsonValue));
   } catch (e) {
     fun(null);
+  }
+};
+export const map = {
+  static : function(pos,zoom){
+      zoom = zoom?zoom:17;
+      return {image:'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/'+pos.lng+','+pos.lat+','+zoom+',0,60/400x250?&access_token=pk.eyJ1IjoiYWhsdSIsImEiOiJja3B0ODM0aXEwMHUzMnZyM21tdnNzc2FvIn0.6dAfESP_bzUMu9t9j2dNSQ',url:'https://www.google.com/maps/@'+pos.lng+','+pos.lat+',16z'};
   }
 };
