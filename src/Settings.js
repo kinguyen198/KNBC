@@ -54,7 +54,7 @@ export default function Settings({navigation}) {
             color: 'black',
             paddingVertical: '3%',
           }}>
-          Set server address
+          My account
         </Text>
       </View>
       <View style={styles.white_view}>
@@ -92,12 +92,7 @@ export default function Settings({navigation}) {
             await AsyncStorage.removeItem('user', () => {
               //socket.disconnect();
               //firebase.auth().signOut();
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{name: 'Login'}],
-                }),
-              );
+              navigation.navigate('Login');
             });
           }}>
           <Text
@@ -110,6 +105,24 @@ export default function Settings({navigation}) {
               paddingVertical: '3%',
             }}>
             Logout
+          </Text>
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
+          onPress={async () => {
+            await AsyncStorage.removeItem('user', () => {
+              navigation.navigate.goBack();
+            });
+          }}>
+          <Text
+            style={{
+              width: '100%',
+              marginLeft: '7%',
+              fontSize: 22,
+              //ontFamily: 'Cairo-SemiBold',
+              color: 'tomato',
+              paddingVertical: '3%',
+            }}>
+            Back to Home
           </Text>
         </TouchableWithoutFeedback>
       </View>

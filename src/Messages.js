@@ -15,7 +15,7 @@ import {
   Platform,
   Button,
   TouchableWithoutFeedback,
-  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import {
   GiftedChat,
@@ -26,6 +26,8 @@ import {
   Composer,
 } from 'react-native-gifted-chat';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import BottomSheet from 'reanimated-bottom-sheet';
+import Geolocation from '@react-native-community/geolocation';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-picker';
@@ -36,10 +38,13 @@ import Video from 'react-native-video';
 import * as Config from '../Config';
 import Share from 'react-native-share';
 import EditMessage from './component/editMessage';
+import RoomSetting from './RoomSetting';
+import RoomSettingFriend from './RoomSettingFriend';
 export default function Messages({navigation, route}) {
   const heightStatusBar = getStatusBarHeight();
   var videoRef = useRef(null);
   const [user, setUser] = useState();
+  const [typeRoom, setTypeRoom] = useState('f');
   const [userId, setUserId] = useState('');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState('');
@@ -49,13 +54,114 @@ export default function Messages({navigation, route}) {
   const [playing, setPlaying] = useState(false);
   const [endVideo, setEndVideo] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const {params} = route;
-  const [edit, setEdit] = useState();
+  const [showRoomSetting, setShowRoomSetting] = useState(false);
+  const [showRoomSettingFriend, setShowRoomSettingFriend] = useState(false);
 
+  const {params} = route;
+  console.log(params)
+  const [edit, setEdit] = useState();
+  const sheetRef = useRef();
   var page = 0;
-  const url = Config.socket.url;
   // var socket = io(url + '/chatsocket');
-  var socket = io(url);
+  var socket = io(Config.socket.url);
+
+  const sendLocation = () => {
+    Geolocation.getCurrentPosition(
+      //Will give you the current location
+      position => {
+        console.log(position.coords.latitude);
+        console.log(position.coords.longitude);
+        const id = messages.length + 1;
+        const messGPS = [
+          {
+            _id: id,
+            text:
+              '[map]' +
+              position.coords.latitude +
+              ',' +
+              position.coords.longitude,
+            createdAt: new Date(),
+            user: {
+              _id: userId,
+              name: userName,
+              avatar: userPhoto,
+            },
+          },
+        ];
+        onSend(messGPS);
+        sheetRef.current.snapTo(1);
+      },
+      error => {
+        console.log(error);
+        sheetRef.current.snapTo(1);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 5000,
+        maximumAge: 1000,
+      },
+    );
+  };
+  const renderContent = () => (
+    <View
+      style={{
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        padding: 16,
+        justifyContent: 'flex-end',
+        height: '100%',
+        borderRadius: 20,
+        paddingBottom: '10%',
+      }}>
+      <TouchableOpacity
+        onPress={sendLocation}
+        style={{
+          width: '100%',
+          height: 55,
+          backgroundColor: 'white',
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text style={{color: 'blue', fontSize: 16}}>Send location</Text>
+      </TouchableOpacity>
+      <View style={{width: '100%', height: 1, backgroundColor: 'grey'}} />
+      <TouchableOpacity
+        onPress={() => {
+          sheetRef.current.snapTo(1);
+          handleChoosePhoto();
+        }}
+        style={{
+          //marginTop: '1%',
+          width: '100%',
+          height: 55,
+          backgroundColor: 'white',
+          borderBottomLeftRadius: 10,
+          borderBottomRightRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text style={{color: 'blue', fontSize: 16}}>Send image or video</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          sheetRef.current.snapTo(1);
+        }}
+        style={{
+          marginTop: '1%',
+          width: '100%',
+          height: 55,
+          backgroundColor: 'white',
+          borderRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text style={{color: 'red', fontSize: 16, fontWeight: 'bold'}}>
+          Cancel
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const getUser = () => {
     Config.parse_user(user => {
@@ -65,6 +171,12 @@ export default function Messages({navigation, route}) {
   const hideModal = () => {
     setShowEdit(false);
     getMessages();
+  };
+  const hideRoomSetting = () => {
+    setShowRoomSetting(false);
+  };
+  const hideRoomSettingFriend = () => {
+    setShowRoomSettingFriend(false);
   };
   function matchYoutubeUrl(url) {
     var p =
@@ -78,6 +190,71 @@ export default function Messages({navigation, route}) {
       //Alert.alert("video has finished playing!");
     }
   }, []);
+
+  /**
+   * When user get menu setting
+   * @return {[type]} [description]
+   */
+  const menuSetting = function () {
+    //check this room is friend or group
+    if (typeRoom == 'f') {
+      setShowRoomSettingFriend(true);
+      //navigation.navigate('RoomSettingFriend', params);
+    } else {
+      setShowRoomSetting(true);
+      //navigation.navigate('RoomSetting', params);
+    }
+  };
+  const renderMessageText = props => {
+    const {currentMessage} = props;
+    const {text: currText} = currentMessage;
+    var regex = /(\[map])/;
+    //console.log(currText);
+    if (regex.test(currText)) {
+      const arrayPos = currText.slice(5).split(',');
+      const pos = {
+        lat: arrayPos[0],
+        lng: arrayPos[1],
+      };
+      const urlImage = Config.map.static(pos).image;
+      const link = Config.map.static(pos).url;
+      return (
+        <View
+          style={{
+            position: 'relative',
+            height: 150,
+            width: 250,
+            marginBottom: '2%',
+            justifyContent: 'center',
+          }}>
+          <TouchableWithoutFeedback
+            onPress={async () => {
+              const supported = await Linking.canOpenURL(link);
+
+              if (supported) {
+                // Opening the link with some app, if the URL scheme is "http" the web link should be opened
+                // by some browser in the mobile
+                await Linking.openURL(link);
+              } else {
+                Alert.alert(`Don't know how to open this URL: ${link}`);
+              }
+            }}>
+            <Image
+              source={{uri: urlImage}}
+              style={{
+                width: '100%',
+                height: '100%',
+                resizeMode: 'contain',
+                borderRadius: 20,
+                marginTop: '1%',
+              }}
+            />
+          </TouchableWithoutFeedback>
+        </View>
+      );
+    }
+    return <MessageText {...props} />;
+  };
   const renderMessageVideo = props => {
     if (
       props.currentMessage.video.includes('mp4') == true ||
@@ -183,12 +360,10 @@ export default function Messages({navigation, route}) {
                 marginLeft: '4%',
                 marginBottom: Platform.OS == 'ios' ? '0.5%' : '1%',
               }}
-              onPress={handleChoosePhoto}>
+              onPress={() => sheetRef.current.snapTo(0)}>
               <Icon
-                name="ios-images"
-                style={{
-                  color: '#34a8eb',
-                }}
+                name="ios-reorder-three-sharp"
+                style={{color: '#34a8eb'}}
                 size={32}
               />
             </TouchableOpacity>
@@ -461,20 +636,32 @@ export default function Messages({navigation, route}) {
     navigation.goBack(); // works best when the goBack is async
     return true;
   };
+  var timeoutVar = null;
   const onInputTextChanged = async message => {
     socket.emit('typing', {
       room: params.room,
-      sender: userId,
       userName: userName,
-      message: message,
     });
+
+    if (timeoutVar) {
+      clearTimeout(timeoutVar);
+    }
+    timeoutVar = setTimeout(() => {
+      typing = 0;
+      console.log('Stop typing');
+      // setState({typing : false});
+      socket.emit('untyping', {
+        room: params.room,
+        userName: userName,
+      });
+    }, 500);
   };
   const onSend = async message => {
     console.log(message);
     socket.emit('message', {
       sender: userId,
       reciever: recieverId,
-      message: messages[0],
+      message: message,
     });
 
     //console.log(message)
@@ -505,7 +692,7 @@ export default function Messages({navigation, route}) {
           type: type,
           message: {
             _id: message[0]._id,
-            text: message[0].text ? message[0].text : '',
+            text: message[0].text,
             createdAt: message[0].createdAt,
             image: message[0].image ? message[0].image : '',
             video: message[0].video ? message[0].video : '',
@@ -562,7 +749,13 @@ export default function Messages({navigation, route}) {
       // getMessages();
     });
     socket.emit('subscribe', {room: params.room});
-
+    // socket.on('message', async data => {
+    //   getMessages();
+    // });
+    // socket.on('typing', data => {
+    //   console.log('room type: ', data.room);
+    //   getMessages();
+    // });
     return () => backHandler.remove();
   }, []);
   useEffect(() => {
@@ -588,7 +781,6 @@ export default function Messages({navigation, route}) {
           style={{
             backgroundColor: '#34a8eb',
             flexDirection: 'row',
-            //height: '10%',
             width: '100%',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -597,38 +789,60 @@ export default function Messages({navigation, route}) {
             paddingBottom: '1%',
           }}>
           <TouchableOpacity
-            style={{flex: 0.75}}
+            style={{flex: 1}}
             onPress={() => {
               navigation.goBack();
             }}>
             <Icon name="ios-arrow-back" size={32} style={{color: 'white'}} />
           </TouchableOpacity>
-          <Image
-            source={{
-              uri:
-                params.userPhoto == ''
-                  ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
-                  : params.userPhoto,
-            }}
+          <View
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 70,
-              borderColor: '#444',
-              borderWidth: 2,
-            }}
-          />
-          <Text
-            style={{
-              marginLeft: '1%',
-              flex: 1,
-              fontSize: 18,
-              color: '#f2f2f2',
-              textAlign: 'center',
+              flex: 8,
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              paddingBottom:'1%'
             }}>
-            {params.userName}
-          </Text>
-          <Icon name="ios-home" size={32} style={{opacity: 0, flex: 1}} />
+            <View style={{flexDirection: 'row', alignItems: 'flex-end'}}>
+              <Image
+                source={{
+                  uri:
+                    params.userPhoto == ''
+                      ? Config.settings.avatar
+                      : params.userPhoto,
+                }}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 70,
+                  borderColor: '#444',
+                  borderWidth: 2,
+                }}
+              />
+              <Text
+                style={{
+                  marginLeft: '2%',
+                  fontSize: 18,
+                  color: '#f2f2f2',
+                  textAlign: 'center',
+                }}>
+                {params.userName}
+              </Text>
+            </View>
+            {params.typeRoom == 'r' ? (
+              <Text style={{color: 'white', paddingVertical: '1%'}}>
+                Tổng thành viên:
+              </Text>
+            ) : null}
+          </View>
+          <View style={{flex: 1}}>
+            <Icon
+              name="menu-outline"
+              size={32}
+              style={{opacity: 1, color: '#fff'}}
+              onPress={menuSetting}
+            />
+          </View>
         </View>
         <GiftedChat
           listViewProps={{
@@ -646,6 +860,7 @@ export default function Messages({navigation, route}) {
           render
           alwaysShowSend={true}
           messages={messages}
+          renderMessageText={renderMessageText}
           renderMessageVideo={renderMessageVideo}
           renderBubble={renderBubble}
           renderInputToolbar={renderInputToolbar}
@@ -653,7 +868,6 @@ export default function Messages({navigation, route}) {
           onLongPress={onLongPress}
           onInputTextChanged={onInputTextChanged}
           onSend={messages => {
-            var regex = /(\[map])/;
             if (
               messages[0].text.includes('.mp4') == true ||
               messages[0].text.includes('.mpeg') == true
@@ -696,28 +910,6 @@ export default function Messages({navigation, route}) {
               ];
               onSend(videoMsg);
               return;
-            } else if (regex.test(messages[0].text)) {
-              const arrayPos = messages[0].text.slice(5).split(',');
-              const pos = {
-                lat: arrayPos[0],
-                lng: arrayPos[1],
-              };
-              const urlImage = Config.map.static(pos).image
-              const id = messages.length + 1;
-              imageMsg = [
-                {
-                  _id: id,
-                  createdAt: new Date(),
-                  user: {
-                    _id: userId,
-                    name: userName,
-                    avatar: userPhoto,
-                  },
-                  image:urlImage ,
-                },
-              ];
-              onSend(imageMsg);
-              return;
             }
             onSend(messages);
           }}
@@ -732,7 +924,21 @@ export default function Messages({navigation, route}) {
           hideModal={hideModal}
           edit={edit}
         />
-
+        <RoomSetting
+          modalVisible={showRoomSetting}
+          hideModal={hideRoomSetting}
+        />
+        <RoomSettingFriend
+          modalVisible={showRoomSettingFriend}
+          hideModal={hideRoomSettingFriend}
+        />
+        <BottomSheet
+          initialSnap={1}
+          ref={sheetRef}
+          snapPoints={['100%', 0]}
+          borderRadius={10}
+          renderContent={renderContent}
+        />
         <View
           style={{
             height: '1%',

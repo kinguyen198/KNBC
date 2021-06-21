@@ -30,6 +30,9 @@ import ChatsScreen from './Chats';
 import PeoplesScreen from './Peoples';
 import SettingsScreen from './Settings';
 import CreateGroup from './CreateGroup';
+import StickyScreen from './Sticky';
+
+
 import {
   Menu,
   MenuOptions,
@@ -147,15 +150,24 @@ export default function Home({navigation}) {
               <Icon name="ios-chatboxes" color={color} size={28} />
             ),
           }}></Tab.Screen>
-        {/* <Tab.Screen
+         <Tab.Screen
           name="PeoplesScreen"
           component={PeoplesScreen}
           options={{
-            tabBarLabel: 'Waiting friends',
+            tabBarLabel: 'Friends',
             tabBarIcon: ({color, size}) => (
               <Icon name="ios-contacts" color={color} size={28} />
             ),
-          }}></Tab.Screen> */}
+          }}></Tab.Screen>
+          <Tab.Screen
+          name="StickyScreen"
+          component={StickyScreen}
+          options={{
+            tabBarLabel: 'Sticky',
+            tabBarIcon: ({color, size}) => (
+              <Icon name="ios-contacts" color={color} size={28} />
+            ),
+          }}></Tab.Screen>
         <Tab.Screen
           name="SettingsScreen"
           component={SettingsScreen}

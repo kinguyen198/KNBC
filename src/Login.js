@@ -22,17 +22,12 @@ import {CommonActions} from '@react-navigation/native';
 export default function Login({navigation, route}) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-
   const [textError, setTextError] = useState('');
 
   const login = async () => {
     Config.server.post(
       'ajax/user.php',
-      {
-        method: 'login',
-        username: userName,
-        password: password,
-      },
+      {method: 'login', username: userName, password: password},
       async res => {
         if (res.code == 1) {
           let user = {
@@ -66,77 +61,41 @@ export default function Login({navigation, route}) {
   }, [userName, password]);
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1}}>
-        <Image
-          source={require('../assets/background.jpeg')}
-          style={{
-            width: '100%',
-            height: '100%',
-            resizeMode: 'cover',
-            position: 'absolute',
-          }}
-        />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingHorizontal: '10%',
-          }}>
-          <Image
-            source={require('../assets/logo.png')}
-            style={{
-              width: '50%',
-              height: '20%',
-              resizeMode: 'contain',
-              marginBottom: '5%',
-            }}
-          />
-          <View>
-            <Text
-              style={{
-                marginBottom: '5%',
-                fontWeight: 'bold',
-                fontSize: 35,
-                color: '#34a8eb',
-              }}>
-              LOGIN
-            </Text>
-          </View>
-
+      <SafeAreaView style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.1)'}}>
+        <View style={{flexDirection: 'row', paddingHorizontal: '3%'}}>
+          <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
+            <Icon name={'ios-arrow-back'} size={40} color={'#34a8eb'} />
+          </TouchableWithoutFeedback>
+        </View>
+        <View style={{paddingHorizontal: '5%', marginTop: '10%'}}>
+          <Text>Email or phone number</Text>
           <TextInput
             value={userName}
             style={{
               width: '100%',
               height: 40,
-              backgroundColor: 'grey',
-              marginBottom: '3%',
-              color: 'white',
+              marginVertical: '3%',
               paddingLeft: '2%',
-              borderRadius: 10,
               textTransform: 'lowercase',
+              borderBottomWidth: 2,
+              borderColor: '#34a8eb',
             }}
-            placeholder={'Username'}
-            placeholderTextColor={'white'}
             onChangeText={text => {
               setUserName(text.toLowerCase());
             }}
           />
+          <Text>Password</Text>
           <TextInput
             value={password}
             secureTextEntry={true}
             style={{
-              borderRadius: 10,
               paddingLeft: '2%',
               width: '100%',
               height: 40,
-              backgroundColor: 'grey',
-              marginBottom: '5%',
-              color: 'white',
+              borderBottomWidth: 2,
+              marginVertical: '3%',
+              borderColor: '#34a8eb',
             }}
-            placeholder={'Password'}
-            placeholderTextColor={'white'}
             onChangeText={text => {
               setPassword(text);
             }}
@@ -154,31 +113,39 @@ export default function Login({navigation, route}) {
               </Text>
             </View>
           ) : null}
-          <TouchableOpacity
-            onPress={login}
-            style={{
-              height: 40,
-              width: '50%',
-              backgroundColor: '#34a8eb',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '5%',
-              borderRadius: 10,
-            }}>
-            <Text style={{color: 'white'}}>Login</Text>
-          </TouchableOpacity>
-          <View>
+          <View style={{alignItems: 'center'}}>
+            <Text style={{color: '#34a8eb', marginVertical: '2%'}}>
+              Forgot your password?
+            </Text>
+            <TouchableOpacity
+              onPress={login}
+              style={{
+                height: 40,
+                width: '70%',
+                backgroundColor: '#34a8eb',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginVertical: '5%',
+                borderRadius: 20,
+              }}>
+              <Text style={{color: 'white', fontWeight: 'bold'}}>LOG IN</Text>
+            </TouchableOpacity>
             <Text
               onPress={() => {
-                navigation.navigate('Register');
+                navigation.navigate('RegisterWithPhone');
               }}
-              style={{color: '#34a8eb'}}>
-              Register
+              style={{color: '#34a8eb', fontWeight: 'bold'}}>
+              CREATE A NEW ACCOUNT
             </Text>
+            <View style={{marginTop: '15%'}}>
+              <Text style={{textAlign: 'left'}}>
+                JOIN A NEW AREA OF SOCIAL NETWORKINGJOIN A NEW AREA OF SOCIAL
+                NETWORKINGJOIN A NEW AREA OF SOCIAL NETWORKING
+              </Text>
+            </View>
           </View>
-
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 }

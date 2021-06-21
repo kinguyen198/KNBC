@@ -25,8 +25,7 @@ import ImagePicker from 'react-native-image-picker';
 import axios from 'axios';
 import ProgressLoader from 'rn-progress-loader';
 
-
-export default function CreateGroup(props) {
+export default function RoomSetting(props) {
   const heightStatusBar = getStatusBarHeight();
   const [selectUsers, setSelectUsers] = useState([]);
   const [textSearch, setTextSearch] = useState('');
@@ -35,9 +34,7 @@ export default function CreateGroup(props) {
   const [friends, setFriends] = useState([]);
   const [user, setUser] = useState([]);
   const [progressLoaderShow, setProgressLoaderShow] = useState(false);
-
-  // const isFocused = useIsFocused();
-
+  
   const backScreen = () => {
      setSelectUsers([]);
      props.hideModal();
@@ -157,11 +154,9 @@ export default function CreateGroup(props) {
   };
   useEffect(() => {
     Config.parse_user(function (u) {
-      console.log('parse')
       setUser(u);
 
       loadFriends(function(res){
-        console.log('api')
         setFriends(res);
       })
     });

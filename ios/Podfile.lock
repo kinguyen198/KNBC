@@ -323,8 +323,15 @@ PODS:
     - React
   - react-native-image-picker (1.1.0):
     - React
+  - react-native-netinfo (6.0.0):
+    - React-Core
+  - react-native-network-info (5.2.1):
+    - React
   - react-native-safe-area-context (3.2.0):
     - React-Core
+  - react-native-simple-toast (1.1.3):
+    - React-Core
+    - Toast (~> 4.0.0)
   - react-native-video (5.1.1):
     - React-Core
     - react-native-video/Video (= 5.1.1)
@@ -456,6 +463,7 @@ PODS:
     - React-Core
   - RNVectorIcons (6.7.0):
     - React
+  - Toast (4.0.0)
   - toolbar-android (0.1.0-rc.2):
     - React
   - Yoga (1.14.0)
@@ -503,7 +511,10 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-network-info (from `../node_modules/react-native-network-info`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-simple-toast (from `../node_modules/react-native-simple-toast`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -560,6 +571,7 @@ SPEC REPOS:
     - nanopb
     - OpenSSL-Universal
     - PromisesObjC
+    - Toast
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -601,8 +613,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
+  react-native-network-info:
+    :path: "../node_modules/react-native-network-info"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-simple-toast:
+    :path: "../node_modules/react-native-simple-toast"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-webview:
@@ -707,7 +725,10 @@ SPEC CHECKSUMS:
   react-native-camera: e46c64f0d1212124c915bf83ee9b855ac6d35164
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-image-picker: 7a85cf7b0a53845f03ae52fb4592a2748ded069b
+  react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
+  react-native-network-info: d1290ffc0bd0709e11436f5b8d7f605dcc5c4530
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
+  react-native-simple-toast: bf002828cf816775a6809f7a9ec3907509bce11f
   react-native-video: 0bb76b6d6b77da3009611586c7dbf817b947f30e
   react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
   React-perflogger: 25373e382fed75ce768a443822f07098a15ab737
@@ -736,6 +757,7 @@ SPEC CHECKSUMS:
   RNScreens: bf59f17fbf001f1025243eeed5f19419d3c11ef2
   RNShare: 5ac8f6532ca4cd80fc71caef1cfbba1854a6a045
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
+  Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   toolbar-android: 85f3ef4d691469f2d304e7dee4bca013aa1ba1ff
   Yoga: 575c581c63e0d35c9a83f4b46d01d63abc1100ac
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

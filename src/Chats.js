@@ -38,6 +38,7 @@ export default function ChatsScreen({navigation, route}) {
 
         if (data.type == 'r') {
           chatItem = {
+            typeRoom: 'r',
             room: data._id,
             message: latest.text
               ? latest.text
@@ -52,6 +53,7 @@ export default function ChatsScreen({navigation, route}) {
           };
         } else {
           chatItem = {
+            typeRoom: 'f',
             room: data._id,
             message: latest.text
               ? latest.text
@@ -65,6 +67,7 @@ export default function ChatsScreen({navigation, route}) {
             },
           };
         }
+
         chats.push(chatItem);
       }
 
@@ -76,57 +79,75 @@ export default function ChatsScreen({navigation, route}) {
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    wait(2000).then(() => setRefreshing(false));
+    wait(2000).then(() => {
+      getRoom(function (res) {
+        Config.server.rooms = res.reverse();
+        setChats([...Config.server.rooms]);
+        setRefreshing(false);
+      });
+    });
   }, []);
   useEffect(() => {
     socket.connect();
     socket.on('incommingMessage', async data => {
       console.log('incommingMessage', data);
     });
-    socket.on('message', async data => {
-      const msg = data.message;
+    // socket.on('message', async data => {
+    //   const msg = data.message[0];
 
-      // console.log(Config.server.rooms);
-      //var l = Config.server.rooms.length;
-      //for (var i = 0; i < l; i++) {
-       //var item = Config.server.rooms[i];
-        //if (item._id == data.room) {
-         // console.log('socket message=>', data);
-        //}
-     // }
-      // var chats = getChats();
-      // getRoom(function(res){
-      //     setChats(res);
-      // });
-      //getRoom();
-    });
-    // socket.on('typing', data => {
+    //   console.log('new message: ', msg);
+    //   getRoom(function (res) {
+    //     Config.server.rooms = res;
+    //     setChats([...res]);
+    //   });
+    // });
+    // socket.on('typing',(data) => {
+
     //   console.log('room type: ', data.room);
-    //     var rooms = Config.server.rooms;
-    //     var l = rooms.length;
-    //     for(var i=0; i<l; i++) {
-    //       var item = rooms[i];
-    //       // console.log(item.room);
-    //       if(item.room==data.room){
-    //          console.log("socket type=>",data);
-    //          item.message = data.userName +" is typing...";
-    //          console.log(rooms);
-    //          setChats(rooms);
-    //       }
+
+    //   var rooms = Config.server.rooms;
+    //   var l = rooms.length;
+    //   for(var i=0; i<l; i++) {
+    //     var item = rooms[i];
+    //     if(item.room==data.room){
+    //        console.log("socket type=>",data);
+    //        item.old_message = item.message;
+    //        item.message = data.userName +" is typing...";
     //     }
+    //   }
+    //   setChats([...chats,rooms]);
+    // });
+    // socket.on('untyping',(data) => {
+
+    //   console.log('room untype: ', data.room);
+
+    //   var rooms = Config.server.rooms;
+    //   var l = rooms.length;
+    //   for(var i=0; i<l; i++) {
+    //     var item = rooms[i];
+    //     if(item.old_message){
+    //        item.message = item.old_message;
+    //        item.old_message = "";
+    //     }
+    //   }
+    //   setChats([...chats,rooms]);
     // });
     Config.server.init();
-    setUser(Config.server.user);
     //tell server new coming
-    socket.emit('storeClientInfo', {customId: Config.server.user.userId});
+
+    Config.parse_user(function (u) {
+      socket.emit('storeClientInfo', {customId: u.userId});
+      setUser(u);
+
+      getRoom(function (res) {
+        Config.server.rooms = res.reverse();
+        setChats([...Config.server.rooms]);
+      });
+    });
   }, []);
 
   useEffect(() => {
     if (user) {
-      getRoom(function (res) {
-        Config.server.rooms = res;
-        setChats(res);
-      });
     }
   }, [isFocused, user]);
 
@@ -138,6 +159,7 @@ export default function ChatsScreen({navigation, route}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           style={{
+            height:'100%',
             paddingLeft: '5%',
             paddingHorizontal: '7%',
             marginBottom: '18%',
@@ -160,6 +182,7 @@ export default function ChatsScreen({navigation, route}) {
                     senderName: user.userName,
                     senderPhoto: user.userPhoto,
                     room: chatItem.room,
+                    typeRoom: chatItem.typeRoom,
                   });
                 }}>
                 <View

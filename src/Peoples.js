@@ -9,15 +9,40 @@ import io from 'socket.io-client';
 import {firebase} from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
-import * as Config from '../Config'
-import Share from 'react-native-share';
+import * as Config from '../Config';
 
 export default function PeoplesScreen({navigation, route}) {
   const [userId, setUserId] = useState('');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userName, setUserName] = useState('');
-  const [activePeoples, setActivePeoples] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [inactivePeoples, setInactivePeoples] = useState([]);
+  const [activePeoples, setActivePeoples] = useState([]);
+
+  const backScreen = () => {
+     setSelectUsers([]); 
+  };
+  const loadFriends =  (func) => {
+     Config.server.post('ajax/user.php',{method:"myfriend"}, res => {
+      if (res.code) {
+          var data = res.data.map(function(item,i){
+            return {
+                  __v: i,
+                  _id: item.user_id,
+                  id: item.user_id,
+                  isActive: item.isActive,
+                  name: item.username,
+                  photo:item.avatar?item.avatar:Config.settings.avatar
+                };
+          });
+          func(data);
+      }else{
+         func([]);
+      }
+      //console.log(res);
+    } );
+  };
+
   const arrayTest = [
     {
       __v: 0,
@@ -27,125 +52,27 @@ export default function PeoplesScreen({navigation, route}) {
       name: 'Test16232126422469',
       photo:
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '2',
-      id: '12312316232126422462',
-      isActive: true,
-      name: 'Test16232126422468',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '3',
-      id: '123123162321264224636',
-      isActive: true,
-      name: 'Test16232126422467',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '4',
-      id: '12312316232126422464',
-      isActive: true,
-      name: 'Test16232126422465',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '1',
-      id: '12312316232126422461',
-      isActive: true,
-      name: 'Test16232126422469',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '2',
-      id: '12312316232126422462',
-      isActive: true,
-      name: 'Test16232126422468',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '3',
-      id: '123123162321264224636',
-      isActive: true,
-      name: 'Test16232126422467',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-    {
-      __v: 0,
-      _id: '4',
-      id: '12312316232126422464',
-      isActive: true,
-      name: 'Test16232126422465',
-      photo:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU',
-    },
-  ];
-  const url = 'http://127.0.0.1:5000';
-  var socket = io(url);
-  const getUser = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('user');
-      const user = JSON.parse(jsonValue);
-      setUserId(user.userId);
-      setUserName(user.userName);
-      setUserPhoto(user.userPhoto);
-    } catch (e) {
-      console.log(e);
     }
-  };
-  const userActive = async () => {
-    let actives = [];
-    let res = await axios.get(url + '/users/active');
-    if (res.status == 200) {
-      let data = res.data;
-      data.map(active => {
-        actives.push(active);
-      });
-      setActivePeoples(actives);
-    }
-  };
+  ]; 
+ 
   useEffect(() => {
-    getUser();
-    socket.connect();
-    socket.on('update', () => {
-      console.log('Ceeeeeeeeeeee');
-      setTimeout(() => {
-        // userActive();
-      }, 2000);
+    loadFriends(function(res){
+        setActivePeoples(res);
+        setFriends(res);
     });
-  }, []);
-  useEffect(() => {
-    userActive();
-    socket.on('connect', () => {
-      //notify new user
-      socket.emit('storeClientInfo', {
-        customId: userId,
-      });
-    });
+    
   }, [userId]);
   const renderUser = (active, showActive = true) => (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('Messages', {
-          userName: active.name,
-          userId: active.id,
-          userPhoto: active.photo,
-          senderId: userId,
-          senderName: userName,
-          senderPhoto: userPhoto,
-        });
+        // navigation.navigate('Messages', {
+        //   userName: active.name,
+        //   userId: active.id,
+        //   userPhoto: active.photo,
+        //   senderId: userId,
+        //   senderName: userName,
+        //   senderPhoto: userPhoto,
+        // });
         // console.log(this.props);
       }}>
       <View
@@ -160,9 +87,7 @@ export default function PeoplesScreen({navigation, route}) {
         <Image
           source={{
             uri:
-              active.photo == ''
-                ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
-                : active.photo,
+              active.photo == '' ? Config.settings.avatar : active.photo,
           }}
           style={{
             width: 40,
@@ -212,7 +137,11 @@ export default function PeoplesScreen({navigation, route}) {
               flexDirection: 'row',
               //marginVertical: '5%',
               alignItems: 'center',
-            }}>
+            }}
+            onPress={()=>{
+                navigation.navigate('AddFriend');
+            }}
+            >
             <Icon
               name="people-sharp"
               type="ionicon"
@@ -285,7 +214,7 @@ export default function PeoplesScreen({navigation, route}) {
           }}>
           <Text style={{fontSize: 13, fontWeight: 'bold'}}>Danh bạ</Text>
           <ScrollView alwaysBounceVertical={false}>
-            {arrayTest.map(active => (
+            {friends.map(active => (
               <React.Fragment>
                 {renderUser(active, false)}
                 <View

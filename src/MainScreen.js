@@ -14,6 +14,11 @@ import {
   View,
   TouchableOpacity,
   Linking,
+  ScrollView,
+  BackHandler,
+  Platform,
+  Dimensions,
+  RefreshControl,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
 import Geolocation from '@react-native-community/geolocation';
@@ -23,10 +28,11 @@ import {firebase} from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Config from '../Config';
+import DeviceInfo from 'react-native-device-info';
+import {NetworkInfo} from 'react-native-network-info';
+//
+import {isIphoneX} from 'react-native-iphone-x-helper';
 
-GoogleSignin.configure({
-  webClientId: '',
-});
 export default function MainScreen({navigation, route}) {
   const myWebView = useRef();
   const [currentLongitude, setCurrentLongitude] = useState('...');
@@ -36,6 +42,8 @@ export default function MainScreen({navigation, route}) {
   const [isLogin, setIsLogin] = useState(false);
   const [text, setText] = useState('');
   const [text2, setText2] = useState('');
+  const [jscode, setJscode] = useState('');
+
   //
   const GPS = func => {
     setLocationStatus('Getting Location ...');
@@ -113,7 +121,7 @@ export default function MainScreen({navigation, route}) {
     //         let newUser = {
     //           userName: user.displayName,
     //           userPhoto: !user.photoURL
-    //             ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
+    //             ? Config.settings.avatar
     //             : user.photoURL,
     //           userId: user.uid,
     //         };
@@ -139,9 +147,7 @@ export default function MainScreen({navigation, route}) {
       let newUser = {
         userName: user.userName,
         userPhoto:
-          user.userPhoto == ''
-            ? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DLuBDtz2945mZR71wAT0WSkktlbwpF3chZ8omSwo5km6q6NfxZDKtx5TXWcrWz-rZDA&usqp=CAU'
-            : user.userPhoto,
+          user.userPhoto == '' ? Config.settings.avatar : user.userPhoto,
         userId: user.userId,
         code: user.code,
       };
@@ -155,12 +161,10 @@ export default function MainScreen({navigation, route}) {
     //   console.log(e);
     // }
   };
-  const LoginUser = () => {
-    navigation.navigate('Login');
-  };
+
   const onWebViewMessage = event => {
     console.log('Message received from webview');
-    let msgData;
+    let msgData = null;
     try {
       msgData = JSON.parse(event.nativeEvent.data);
       console.log(msgData);
@@ -175,6 +179,19 @@ export default function MainScreen({navigation, route}) {
         loginWithGoogle(function (user) {
           console.log(user);
           msgData.args = [user];
+          msgData.isSuccessfull = true;
+          myWebView.current.injectJavaScript(
+            `window.postMessage('${JSON.stringify(msgData)}', '*');`,
+          );
+        });
+
+        break;
+      case 'gps':
+        console.log('gps');
+
+        GPS(function (pos) {
+          console.log(pos);
+          msgData.args = [pos];
           msgData.isSuccessfull = true;
           myWebView.current.injectJavaScript(
             `window.postMessage('${JSON.stringify(msgData)}', '*');`,
@@ -213,102 +230,100 @@ export default function MainScreen({navigation, route}) {
         Chat(user);
         break;
       case 'login':
-        LoginUser();
+        Config.parse_user(function (u) {
+          if (u) {
+            navigation.navigate('Home');
+          } else {
+            navigation.navigate('Login');
+          }
+        });
+        break;
+      case 'view':
+        var callback = function () {
+          msgData.args = arguments;
+          msgData.isSuccessfull = true;
+          myWebView.current.injectJavaScript(
+            `window.postMessage('${JSON.stringify(msgData)}', '*');`,
+          );
+        };
+        //https://stackoverflow.com/questions/44942130/navigate-callback-react-native
+        navigation.navigate(msgData.data, {callback: callback});
         break;
       case 'share':
-        if (msgData.message && msgData.url) {
-          Config.share.text(msgData.title, msgData.message + msgData.url);
-        } else {
-          if (msgData.url) {
-            Config.share.link(msgData.title, msgData.url);
-          } else {
-            Config.share.text(msgData.title, msgData.message);
-          }
-        }
-
+        // if (msgData.message && msgData.url) {
+        //   Config.share.text(msgData.title, msgData.message + msgData.url);
+        // } else {
+        //   if (msgData.url) {
+        //     Config.share.link(msgData.title, msgData.url);
+        //   } else {
+        //     Config.share.text(msgData.title, msgData.message);
+        //   }
+        // }
+        navigation.navigate('GetStarted');
         break;
     }
   };
-  const onShouldStartLoadWithRequest = request => {
-    var matches = request.url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
-    var domain = matches && matches[1];
-    if (Config.server.url.includes(domain)) {
-      return true;
-    }
-    if (request.url.includes('iframe=true')) {
-      return true;
-    }
-    if (request.url.includes('open=true')) {
-      Linking.openURL(request.url);
-      return false;
-    }
-    //ext
-    var ext = Config.utils.getFileExtension3(request.url);
-    switch (ext) {
-      case 'mp3':
-      case 'mp4':
-      case 'wma':
-      case 'flv':
-      case 'mpeg':
-        return true;
+  useEffect(async () => {
+    var code =
+      Platform.OS === 'android'
+        ? "window.root_local ='file:///android_asset/';"
+        : `window.root_local = document.location.origin+document.location.pathname.split("/").slice(0, -1).join("/")+"/";`;
+    code +=
+      'window.AhluDevice=' +
+      JSON.stringify({
+        mac: DeviceInfo.getUniqueId(),
+        appName: DeviceInfo.getApplicationName(),
+        buildNumber: DeviceInfo.getBuildNumber(),
+        bundle: DeviceInfo.getBundleId(),
+        os: Platform.OS,
+        iphonex: isIphoneX(),
+      }) +
+      ';';
+    // alert(code);
+    setJscode(code);
+    DeviceInfo.getDeviceToken()
+      .then(deviceToken => {
+        // iOS: "a2Jqsd0kanz..."
+        // alert(deviceToken);
+      })
+      .catch(console.error);
+
+    if (Platform.OS === 'android') {
+      BackHandler.addEventListener('hardwareBackPress', function () {
+        myWebView.current.injectJavaScript(
+          `window.postMessage('window_back', '*');`,
+        );
+        // alert("back");
+        return false;
+      });
     }
 
-    if (!/^[data:text, about:blank]/.test(request.url)) {
-      console.log(request.url);
-      if (
-        request.url.startsWith('tel:') ||
-        request.url.startsWith('mailto:') ||
-        request.url.startsWith('maps:') ||
-        request.url.startsWith('geo:') ||
-        request.url.startsWith('sms:')
-      ) {
-        Linking.openURL(request.url).catch(er => {
-          console.log('Failed to open Link:', er.message);
-        });
-        return false;
-      } else {
-        if (request.url.startsWith(Config.server.schema)) {
-          const path = request.url.replace(Config.server.schema, '');
-          var regex = /[?&]([^=#]+)=([^&#]*)/g,
-            params = {},
-            match;
-          while ((match = regex.exec(path))) {
-            params[match[1]] = match[2];
-          }
-          path = path.split('?')[0];
-          if (path.startsWith('share')) {
-            //share
-          } else if (path.startsWith('add')) {
-            //share
-          } else if (path.startsWith('send')) {
-            //share
-          }
-          console.log(params);
-          return false;
-        } else {
-          //skip
-          if (
-            request.url.startsWith('wvjbscheme://') ||
-            request.url.includes('://localhost')
-          ) {
-            return true;
-          }
-          //open all in default
-          Linking.openURL(request.url);
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-  useEffect(() => {}, []);
-  // useEffect(() => {
-  //   getOneTimeLocation();
-  // }, []);
-  // useEffect(() => {
-  //   console.log(currentLatitude);
-  //   console.log(currentLongitude);
-  // }, [currentLongitude, currentLatitude]);
+    // Get BSSID
+    NetworkInfo.getBSSID().then(bssid => {
+      myWebView.current.injectJavaScript(
+        `window.AhluDevice.macwifi = '${bssid}';`,
+      );
+    });
+    NetworkInfo.getIPAddress().then(ipAddress => {
+      // alert(ipAddress);
+      myWebView.current.injectJavaScript(
+        `window.AhluDevice.ip_local = '${ipAddress}';`,
+      );
+    });
+    NetworkInfo.getIPV4Address().then(ipv4Address => {
+      // alert(ipv4Address);
+      myWebView.current.injectJavaScript(
+        `window.AhluDevice.ip = '${ipv4Address}';`,
+      );
+    });
+  }, []);
+
+  function wait(timeout) {
+    return new Promise(resolve => {
+      setTimeout(resolve, timeout);
+    });
+  }
+
   return (
     <View style={styles.container}>
       <WebView
@@ -319,11 +334,12 @@ export default function MainScreen({navigation, route}) {
         allowsInlineMediaPlayback={true}
         scrollEnabled={false}
         // source={{uri: 'https://hcm.ahlupos.com/test/chatroom/my.php?user=azs2nd'}}
+        // source={{uri: 'https://hcm.ahlupos.com/test/menupos/app.php'}}
         //source={require('../resource/index.html')}
         source={
           Platform.OS === 'android'
             ? {uri: 'file:///android_asset/index.html'}
-            : require('../resource/index.html')
+            : require('../android/app/src/main/assets/index.html')
         }
         // source={{
         //   uri:
@@ -339,15 +355,10 @@ export default function MainScreen({navigation, route}) {
         allowFileAccessFromFileURLs={true}
         mixedContentMode="always"
         sharedCookiesEnabled={true}
-        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-        // onShouldStartLoadWithRequest={(request) => {
-        //   // If we're loading the current URI, allow it to load
-        //   return true;
-        //   // if (request.url === this.prop) return true;
-        //   // // We're loading a new URL -- change state first
-        //   // setURI(request.url);
-        //   // return false;
-        // }}
+        onShouldStartLoadWithRequest={
+          Config.webview.onShouldStartLoadWithRequest
+        }
+        injectedJavaScript={jscode}
       />
       {/* {isLogin == false ? (
          <TouchableOpacity onPress={loginWithGoogle} style={styles.button}>
@@ -366,7 +377,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    justifyContent: 'center',
+    //alignItems: 'center',
+    //justifyContent: 'center',
   },
   containerWeb: {
     width: '100%',

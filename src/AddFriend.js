@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from './component/NavigationBar';
-import * as Config from '../Config';
-import Share from 'react-native-share';
+import * as Config from '../Config'; 
 
 export default function AddFriend({navigation, route}) {
   const [input, setInput] = useState('');
+  const [user, setUser] = useState('');
+
   const backScreen = () => {
     navigation.goBack();
   };
@@ -61,22 +62,34 @@ export default function AddFriend({navigation, route}) {
       </TouchableOpacity>
     </View>
   );
-
+  //add friend
   const addFriend = () => {
-    Config.server.post(
-      'ajax/user.php',
-      {
+    if(!input.trim()){
+       Alert.alert('Notification', "Enter your friend!.");
+    }else{
+       var data = {
         method: 'addfriend',
-        user_id: input,
-      },
-      res => {
-        if (res.message) {
+        user_id: input.trim(),
+      };
+      Config.server.post('ajax/user.php',data, res => {
+        if (res.code) {
           Alert.alert('Notification', res.message);
+          backScreen();
+        }else{
+           Alert.alert('Notification', res.error);
         }
         //console.log(res);
-      },
-    );
+      } );
+    }
+    
   };
+
+  useEffect(() => {
+    Config.parse_user(function(u){
+        setUser(u);
+    });
+    
+  }, []);
   return (
     <View style={{flex: 1}}>
       <NavigationBar title="Thêm bạn" back={backScreen} />
@@ -129,19 +142,28 @@ export default function AddFriend({navigation, route}) {
             icon="qr-code-outline"
           />
           <Button
-            title="Giới thiệu KNBC cho bạn bè"
+            title="Giới thiệu ứng cho bạn bè"
             description="Gửi tin nhắn sms để mời bạn "
             icon="md-chatbox-ellipses-outline"
+            onPress={()=>{
+              Config.share.text("Tải ứng dụng vad nhập mã giới thiệu"+user.id);
+            }}
           />
           <Button
             title="Bạn từ danh bạ máy"
             description="Thêm bạn từ danh bạ máy"
             icon="md-people"
+            onPress={()=>{
+              
+            }}
           />
           <Button
             title="Có thể bạn quen"
             description="Thêm bạn từ danh sách gợi ý"
             icon="ios-man"
+            onPress={()=>{
+              
+            }}
           />
         </View>
         <View style={{backgroundColor: 'white', paddingLeft: '3%'}}>
